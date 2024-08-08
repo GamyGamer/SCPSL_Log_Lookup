@@ -357,7 +357,7 @@ function ClassChangeHandle(new_lines, tr) {
     //KTOŚ KOGOŚ ZABIŁ
     regmatch = REGEX_direct_kill.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[0], 'kill')
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
         testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
         if (!timeline.PlayerExist(regmatch[1])) {
             timeline.AddPlayer(0, regmatch[1], regmatch[2])
@@ -378,7 +378,7 @@ function ClassChangeHandle(new_lines, tr) {
     //SAMOBÓJ
     regmatch = REGEX_suicide.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[0], 'suicide')
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
         if (!timeline.PlayerExist(regmatch[1])) {
             timeline.AddPlayer(0, regmatch[1], regmatch[2])
         }
@@ -394,7 +394,7 @@ function ClassChangeHandle(new_lines, tr) {
     //NIEZNANY
     regmatch = REGEX_unknown_kill.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[0], 'suicide')
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
         if (!timeline.PlayerExist(regmatch[1])) {
             timeline.AddPlayer(0, regmatch[1], regmatch[2])
         }
@@ -408,7 +408,7 @@ function ClassChangeHandle(new_lines, tr) {
     //TEAMKILL
     regmatch = REGEX_teamkill.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[0], 'kill')
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
         testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
         if (!timeline.PlayerExist(regmatch[1])) {
             timeline.AddPlayer(0, regmatch[1], regmatch[2])
@@ -443,14 +443,14 @@ function ClassChangeHandle(new_lines, tr) {
     //SPAWN WAVE 2/2
     regmatch = REGEX_respawn_manager.exec(new_lines[4])
     if (regmatch != null) {
-        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[0]
+        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
         respawn_in_progress = false
         return;
     }
     //FORCE CLASS
     regmatch = REGEX_class_change.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[0], 'force_class')
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
         timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
         return;
 
@@ -461,11 +461,11 @@ function ClassChangeHandle(new_lines, tr) {
 function LoggerHandle(new_lines, tr) {
     tr.style.backgroundColor = 'orange'
     if (new_lines[4].search(REGEX_round_start) != -1) {
-        timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[0];
+        timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[1];
         return
     }
     if (new_lines[4].search(REGEX_round_finish) != -1) {
-        timeline.NewKeyFrame(new_lines[0], 'round_finish')
+        timeline.NewKeyFrame(new_lines[1], 'round_finish')
         return
     }
     //throw new Error("Function not implemented.");
@@ -482,15 +482,15 @@ function AdministativeHandle(new_lines, tr) {
 function WarheadHandle(new_lines, tr) {
     tr.style.backgroundColor = 'teal'
     if (new_lines[4].search(REGEX_warhead_countdown_start) != -1) {
-        timeline.NewKeyFrame(new_lines[0], 'warhead_countdown_start')
+        timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
         return
     }
     if (new_lines[4].search(REGEX_warhead_countdown_paused) != -1) {
-        timeline.NewKeyFrame(new_lines[0], 'warhead_countdown_paused')
+        timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_paused')
         return
     }
     if (new_lines[4].search(REGEX_warhead_detonated) != -1) {
-        timeline.NewKeyFrame(new_lines[0], 'warhead_detonated')
+        timeline.NewKeyFrame(new_lines[1], 'warhead_detonated')
         return
     }
 
