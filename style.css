@@ -1,0 +1,52 @@
+:root{
+    color-scheme: light dark;
+}
+*{
+    font-family: 'Courier New', Courier, monospace;
+}
+
+@media (prefers-color-scheme: light){
+    table, th, td, tr{
+        border: 1px solid black;
+        border-collapse: collapse;
+        margin: 10px;
+        text-align: center;
+        padding: 4px;
+    }
+    tr:hover{
+    
+        background-color: beige !important; 
+    }
+    img{
+        width: 40px;
+        display:block;
+    }
+    .admin_chat{
+        color: blue;
+    }
+}
+
+@media (prefers-color-scheme: dark){
+    table, th, td, tr{
+        border: 1px solid rgb(255, 255, 255);
+        border-collapse: collapse;
+        margin: 10px;
+        text-align: center;
+        padding: 4px;
+    }
+    tr:hover{
+    
+        background-color:gray !important; 
+    }
+    img{
+        width: 40px;
+        display:block;
+        filter: invert();
+    }
+    .admin_chat{
+        color: gold;
+    }
+}
+
+
+

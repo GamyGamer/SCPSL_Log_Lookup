@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="icons/04a05d51c636d09507a1d5a7c34278f7.webp" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <title>SCP:SL TimeLine</title>
+    <script src="regex_rules.js"></script>
+    <script src="monit_users.js"></script>
+</head>
+
+<body style="margin: 0;">
+    <div style="width: 100%; background-color: red; color: white; text-align: center; font-size: x-large; display: none;"
+        id="error_bar">WYSTĄPIŁ BŁĄD [ERROR CODE W KONSOLI]</div>
+    <br>
+    <input type="file" id="fileInput">
+    <br>
+    <div id="welcome">
+        Autor: GamyGamer (306161751077158933) <br>
+        Witaj! Stworzyłem ten program głównie po to aby szybciej podejrzeć logi serwerowe <br>
+        Na ten moment głównie podświetla śmierci osób które były SCP a umarły w nietypowy sposób <br>
+        Na samym dole strony znajdziesz wyskubione death logi [NIE WSZYSTKIE] oraz Admin Chat. <br>
+        W przyszłości pojawi się oś czasu która pokaże kluczowe momenty (aktywna głowica, resp, śmierci itd.)
+        Do już prawie działających wartości można się dostać wpisując w konsole: <br>
+        timeline.keyframe
+    </div>
+    <!-- <pre id="output"></pre> -->
+
+    <!-- Ikona | Czas | Typ | Powód | Linijka -->
+    <div>
+        <table>
+            <tbody id="table">
+                <tr>
+                    <td><img src="icons/log.png"></td>
+                    <td>2024-07-26 10:40:24.236 +02:00</td>
+                    <td>Internal</td>
+                    <td>Logger</td>
+                    <td>Started logging.</td>
+                </tr>
+                <tr>
+                    <td><img src="icons/na.png"></td>
+                    <td>Teraz + 1</td>
+                    <td>Kill</td>
+                    <td>Death</td>
+                    <td>Padł i se leży</td>
+                </tr>
+            </tbody>
+        </table>
+        <span id="testoutput"></span>
+        <hr>
+        <span id="admin_chat"></span>
+        <span id="version">version: UNKNOWN [script failed to load?]</span>
+        <br>
+        <a href="attributions.html">ATTRIBUTIONS</a>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
