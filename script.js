@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.0.1"
+let version = "0.0.2"
 /*
     Tytuł projektu: SCP:SL LOG PARSER
     Cel projektu: Przetwarzanie logów rund serwera SCP:SL w celu łatwego podglądu
@@ -49,7 +49,40 @@ class Roles {
     }
     Military = ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor"];
     Civilian = ["Scientist", "ClassD"]
+    /**
+     * @param {string} Role
+     * @returns {boolean}
+     */
+    IsCivilian(Role) {
+        if (Role == undefined) {
+            throw new Error("Role is undefined");
+        }
+        let found = false
+        this.Civilian.forEach(element => {
+            if (element == Role) {
+                found = true
+            }
+        })
+        return found
+    }
+    /**
+     * @param {string} Role
+     * @returns {boolean}
+     */
+    IsSCP(Role) {
+        if (Role == undefined) {
+            throw new Error("Role is undefined");
+        }
+        let found = false
+        this.Aligments.SCP.forEach(element => {
+            if (element == Role) {
+                found = true
+            }
+        })
+        return found
+    }
 }
+
 class Timeline {
     keyframe = new Array();
     role_dictonary = {
@@ -206,17 +239,29 @@ class Timeline {
         throw new Error(`Unable to find player ${UserID} with ${Role} role`)
 
     }
+    /**
+    * W momencie otrzymania roli następuje wsteczna propagacja w osi czasu
+    * @param {string} UserID 
+    * @param {string} Role 
+    */
+    BackPropagatePlayerRole(UserID, Role) {
+        if (!this.PlayerExist(UserID)) {
+            this.AddPlayer(0, UserID, Role)
+        }
+        else {
+            this.AddPlayer(this.FindNewestPlayer(UserID), UserID, Role)  //Złap zombiaka
+        }
+    }
 
 }
 
 let timeline = new Timeline()
-
+let Role = new Roles();
 let lines = new Array();
 let new_lines = new Array();
 let testoutput = new String();
 let admin_chat = new String();
 let UserID_assoc = new Object();
-let captured = false;
 let respawn_in_progress = false
 
 function MakeTimeLine() {
@@ -243,7 +288,6 @@ function MakeTimeLine() {
             if (element == "") {
                 return;
             }
-            captured = false
             new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
             if (new_lines == null) {
                 throw new Error(`Error splitting ${element}`);
@@ -336,8 +380,12 @@ window.document.getElementById('version').innerHTML = `Version: ${version}`
 
 document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
 
+/**
+ * @param {any[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
 function ClassChangeHandle(new_lines, tr) {
-    tr.style.backgroundColor = 'red'
+    // tr.style.backgroundColor = 'red'
 
     //HIGH PRIORITY
 
@@ -345,10 +393,12 @@ function ClassChangeHandle(new_lines, tr) {
     let regmatch = REGEX_warhead_death.exec(new_lines[4])
     if (regmatch != null) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
-        if (!timeline.PlayerExist(regmatch[1])) {
-            timeline.AddPlayer(0, regmatch[1], regmatch[2])
-        }
+        testoutput += `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead<br>`
+
+        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
+
+        tr.style.backgroundColor = 'red'
         return
     }
 
@@ -358,20 +408,16 @@ function ClassChangeHandle(new_lines, tr) {
     regmatch = REGEX_direct_kill.exec(new_lines[4])
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
+
         testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
-        if (!timeline.PlayerExist(regmatch[1])) {
-            timeline.AddPlayer(0, regmatch[1], regmatch[2])
-        }
-        else {
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[1]), regmatch[1], regmatch[2])  //Złap zombiaka
-        }
-        if (!timeline.PlayerExist(regmatch[3])) {
-            timeline.AddPlayer(0, regmatch[3], regmatch[4])
-        }
-        else {
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[3]), regmatch[3], regmatch[4])  //Złap zombiaka
-        }
+
+        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+        timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+
+        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
+            tr.style.backgroundColor = 'red'
+        }
         return;
     }
 
@@ -379,29 +425,28 @@ function ClassChangeHandle(new_lines, tr) {
     regmatch = REGEX_suicide.exec(new_lines[4])
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
-        if (!timeline.PlayerExist(regmatch[1])) {
-            timeline.AddPlayer(0, regmatch[1], regmatch[2])
-        }
-        else {
-            // if (timeline.keyframe[timeline.FindNewestPlayer(regmatch[1])].player[regmatch[1]] != 'Spectator') {
-            //     console.log(`Player ${regmatch[1]} is ${timeline.keyframe[timeline.FindNewestPlayer(regmatch[1])].player[regmatch[1]]}`)
-            // }
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[1]), regmatch[1], regmatch[2])  //Złap zombiaka
-        }
+
+        testoutput += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]<br>`
+
+        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
+            tr.style.backgroundColor = 'red'
+        }
         return;
     }
     //NIEZNANY
     regmatch = REGEX_unknown_kill.exec(new_lines[4])
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
-        if (!timeline.PlayerExist(regmatch[1])) {
-            timeline.AddPlayer(0, regmatch[1], regmatch[2])
-        }
-        else {
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[1]), regmatch[1], regmatch[2])  //Złap zombiaka
-        }
+
+        testoutput += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]<br>`
+
+        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
+            tr.style.backgroundColor = 'red'
+        }
         return;
     }
 
@@ -409,20 +454,15 @@ function ClassChangeHandle(new_lines, tr) {
     regmatch = REGEX_teamkill.exec(new_lines[4])
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
+
         testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
-        if (!timeline.PlayerExist(regmatch[1])) {
-            timeline.AddPlayer(0, regmatch[1], regmatch[2])
-        }
-        else {
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[1]), regmatch[1], regmatch[2])  //Złap zombiaka
-        }
-        if (!timeline.PlayerExist(regmatch[3])) {
-            timeline.AddPlayer(0, regmatch[3], regmatch[4])
-        }
-        else {
-            timeline.AddPlayer(timeline.FindNewestPlayer(regmatch[3]), regmatch[3], regmatch[4])  //Złap zombiaka
-        }
+
+        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+        timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
+            tr.style.backgroundColor = 'red'
+        }
         return;
     }
 
@@ -445,6 +485,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
         respawn_in_progress = false
+        tr.style.backgroundColor = 'red'
         return;
     }
     //FORCE CLASS
@@ -458,6 +499,11 @@ function ClassChangeHandle(new_lines, tr) {
     throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
 }
 
+
+/**
+ * @param {string[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
 function LoggerHandle(new_lines, tr) {
     tr.style.backgroundColor = 'orange'
     if (new_lines[4].search(REGEX_round_start) != -1) {
@@ -471,6 +517,10 @@ function LoggerHandle(new_lines, tr) {
     //throw new Error("Function not implemented.");
 }
 
+/**
+ * @param {string[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
 function AdministativeHandle(new_lines, tr) {
     let regmatch = REGEX_admin_chat.exec(new_lines[4])
     if (regmatch != null) {
@@ -479,6 +529,10 @@ function AdministativeHandle(new_lines, tr) {
     // throw new Error("Function not implemented.");
 }
 
+/**
+ * @param {string[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
 function WarheadHandle(new_lines, tr) {
     tr.style.backgroundColor = 'teal'
     if (new_lines[4].search(REGEX_warhead_countdown_start) != -1) {
