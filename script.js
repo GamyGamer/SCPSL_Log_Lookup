@@ -1,5 +1,8 @@
 //@ts-check
 let version = "0.0.2"
+let indev = false
+
+
 /*
     Tytuł projektu: SCP:SL LOG PARSER
     Cel projektu: Przetwarzanie logów rund serwera SCP:SL w celu łatwego podglądu
@@ -376,6 +379,10 @@ function MakeTimeLine() {
 window.addEventListener('error', (ErrorEvent) => {
     document.getElementById('error_bar').style.display = 'block';
 })
+if (indev) {
+    document.getElementById('warn_bar').style.display = 'block';
+}
+
 window.document.getElementById('version').innerHTML = `Version: ${version}`
 
 document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
