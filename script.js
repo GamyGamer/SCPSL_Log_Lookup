@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.0.2"
+let version = "0.0.3"
 let indev = false
 
 
@@ -218,7 +218,7 @@ class Timeline {
         }
         let startfrom;
         if (keyframe == undefined) {
-            startfrom = timeline.keyframe.length - 1;
+            startfrom = this.keyframe.length - 1;
         }
         else {
             startfrom = keyframe
@@ -248,7 +248,7 @@ class Timeline {
     * @param {string} Role 
     */
     BackPropagatePlayerRole(UserID, Role) {
-        if (!this.PlayerExist(UserID)) {
+        if (!this.PlayerExist(UserID)) { // If player does not exist assume that's their first role (round start)
             this.AddPlayer(0, UserID, Role)
         }
         else {
@@ -262,8 +262,8 @@ let timeline = new Timeline()
 let Role = new Roles();
 let lines = new Array();
 let new_lines = new Array();
-let testoutput = new String();
-let admin_chat = new String();
+let death_logs = new String();
+const admin_chat_log = window.document.getElementById('admin_chat');
 let UserID_assoc = new Object();
 let respawn_in_progress = false
 
@@ -272,8 +272,8 @@ function MakeTimeLine() {
 
     timeline.Clear()
     respawn_in_progress = false
-    testoutput = new String();
-    admin_chat = new String();
+    death_logs = new String();
+    admin_chat_log.innerText = new String().toString()
     UserID_assoc = new Object();
     let filereader = new FileReader();
 
@@ -294,7 +294,6 @@ function MakeTimeLine() {
             new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
             if (new_lines == null) {
                 throw new Error(`Error splitting ${element}`);
-                //Catch last line, do nothing
             }
             if (new_lines.length != 5) {
                 throw new Error(`Error splitting ${element}`);
@@ -302,8 +301,7 @@ function MakeTimeLine() {
 
             else {
                 for (let index = 0; index < new_lines.length; index++) {
-                    new_lines[index] = new_lines[index].trim();
-
+                    new_lines[index] = new_lines[index].trim(); // Remove leading spaces
                 }
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
@@ -334,7 +332,7 @@ function MakeTimeLine() {
 
                 td.appendChild(img)
                 tr.appendChild(td)
-                for (let index = 1; index < 5; index++) {
+                for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
                     const td = document.createElement('td');
                     td.textContent = new_lines[index]
                     tr.appendChild(td)
@@ -342,7 +340,6 @@ function MakeTimeLine() {
                 if (new_lines[4].search(REGEX_scp_intentional_deaths) != -1) {
                     tr.style.backgroundColor = 'cornflowerblue';
                 }
-
 
                 //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
                 let regmatch = REGEX_ID_to_username.exec(new_lines[4])
@@ -355,8 +352,11 @@ function MakeTimeLine() {
 
 
         });
-        window.document.getElementById('testoutput').innerHTML = testoutput.toString()
-        window.document.getElementById('admin_chat').innerHTML = admin_chat.toString()
+        window.document.getElementById('death_logs').innerText = death_logs.toString()
+        if (!(admin_chat_log.innerText == '')) {
+            admin_chat_log.appendChild(window.document.createElement('hr'))
+        }
+
         if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
             /*
             If you want to use this functionality type in console:
@@ -383,7 +383,7 @@ if (indev) {
     document.getElementById('warn_bar').style.display = 'block';
 }
 
-window.document.getElementById('version').innerHTML = `Version: ${version}`
+window.document.getElementById('version').innerText = `Version: ${version}`
 
 document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
 
@@ -400,7 +400,7 @@ function ClassChangeHandle(new_lines, tr) {
     let regmatch = REGEX_warhead_death.exec(new_lines[4])
     if (regmatch != null) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
-        testoutput += `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead<br>`
+        death_logs += `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead\n`
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
@@ -416,7 +416,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-        testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
+        death_logs += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]\n`
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
@@ -433,7 +433,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
-        testoutput += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]<br>`
+        death_logs += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]\n`
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
@@ -447,7 +447,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
-        testoutput += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]<br>`
+        death_logs += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]\n`
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
@@ -462,7 +462,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-        testoutput += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]<br>`
+        death_logs += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]\n`
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
@@ -476,7 +476,6 @@ function ClassChangeHandle(new_lines, tr) {
     //SPAWN WAVE 1/2
     regmatch = REGEX_Respawned_as.exec(new_lines[4])
     if (regmatch != null) {
-        tr.style.backgroundColor = ''
         if (!respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
             timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
@@ -521,7 +520,7 @@ function LoggerHandle(new_lines, tr) {
         timeline.NewKeyFrame(new_lines[1], 'round_finish')
         return
     }
-    //throw new Error("Function not implemented.");
+    //throw new Error(`Could not parse Logger event.: ${new_lines[4]}`)
 }
 
 /**
@@ -531,9 +530,17 @@ function LoggerHandle(new_lines, tr) {
 function AdministativeHandle(new_lines, tr) {
     let regmatch = REGEX_admin_chat.exec(new_lines[4])
     if (regmatch != null) {
-        admin_chat += `<span class='admin_chat'>${regmatch[1]}</span>: ${regmatch[3]}<br>`
+        const admin_name = window.document.createElement('span')
+        const admin_message = window.document.createTextNode(`: ${regmatch[3]}`)
+
+        admin_name.className = 'admin_chat'
+        admin_name.innerText = regmatch[1]
+        admin_chat_log.appendChild(admin_name)
+        admin_chat_log.appendChild(admin_message)
+        admin_chat_log.appendChild(document.createElement('br'))
+        return
     }
-    // throw new Error("Function not implemented.");
+    // throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
 }
 
 /**
@@ -555,5 +562,5 @@ function WarheadHandle(new_lines, tr) {
         return
     }
 
-    //throw new Error("Function not implemented.");
+    //throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
 }
