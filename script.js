@@ -23,6 +23,9 @@ let indev = true
             - I think it's actually better to keep as is, easy lookup if someone escaped
         -LOGS ARE USING BOTH INTERNAL AND 'TRANSLATED' NAMES FOR ROLES FOR SOME REASON, do translation dictonary to internal
 
+        -Honorable mention:
+            -2024-07-29 10:48:57.923 +02:00 - ??? Według logów osoba 
+
 
     Struktura timeline [WORKS (I think) BUT NOT USED]
 
@@ -178,6 +181,9 @@ class Timeline {
             throw new Error("Role is null")
         }
         Role = this.TranslateToInternal(Role)
+        if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != Role) {
+            console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+        }
         this.keyframe[keyframe].player[UserID] = Role
 
     }
@@ -455,7 +461,6 @@ function ClassChangeHandle(new_lines, tr) {
     regmatch = REGEX_single_kill.exec(new_lines[4])
     if (regmatch != null) {
         let captured = false
-        console.log(regmatch.groups.reason)
         let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
         if (regmatch.groups.reason.search(REGEX_suicide_reason) != -1) {
@@ -480,7 +485,7 @@ function ClassChangeHandle(new_lines, tr) {
             tr.style.backgroundColor = 'red'
         }
         if (!captured) {
-            throw new Error(`Single kill death was not captured ${regmatch.groups.reason}`);
+            throw new Error(`Single kill death was not captured "${regmatch.groups.reason}"`);
         }
         return;
     }

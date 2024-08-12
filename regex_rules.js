@@ -21,7 +21,7 @@ const REGEX_warhead_countdown_paused = /Detonation cancelled\./;
 const REGEX_warhead_detonated = /Warhead detonated\./;
 
 //Kill reasons
-const REGEX_suicide_reason = /Unknown cause of death|Fall damage|Crushed|Severed Hands from SCP-330|Tesla|Melted by a highly corrosive substance/;
+const REGEX_suicide_reason = /Unknown cause of death|Fall damage|Crushed|Severed Hands from SCP-330|Tesla|Melted by a highly corrosive substance|SCP-207/;
 const REGEX_recontained = /Recontained/;
 const REGEX_Decayed = /Decayed in the Pocket Dimension/;
 
