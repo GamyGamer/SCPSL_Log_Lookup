@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.0.3"
-let indev = false
+let version = "0.0.4-rc1"
+let indev = true
 
 
 /*
@@ -11,11 +11,7 @@ let indev = false
     TODO:
         - Utworzenie osi czasu z której można łatwo podejrzeć kto jest jaką rolą w danym okresie czasu, może pokoloruj oś podczas detonacji, markery spawnmanager
         - Podświetl wszystkie linijki z danym ID po kliknięciu na linijkę
-
-        -CHANGE ROLES
     TOFIX:
-        - Death with only one person is marked as suicide
-            - People in pocket dimension are considered to commit no alive
         - Zombie respawns just isn't detected since it's not logged
             - Possible fix, when zombie appears in logs check latest role, if it is Spectator: replace with zombie, otherwise do nothing
                 - Loses time precision
@@ -142,12 +138,25 @@ class Timeline {
      * @param {string} event 
      * @return {number}
      */
-    NewKeyFrame(timestamp = null, event = null) {
+    NewKeyFrame(timestamp = undefined, event = undefined) {
         let current_keyframe = this.keyframe.push(new Object()) - 1;
         this.keyframe[current_keyframe].timestamp = timestamp;
         this.keyframe[current_keyframe].event = event;
         this.keyframe[current_keyframe].player = new Object();
         return current_keyframe;
+    }
+    /**
+     * @param {number} keyframe
+     * @param {string} event
+     */
+    EditKeyFrameEvent(keyframe, event) {
+        if (keyframe == undefined) {
+            throw new Error("keyframe is undefined");
+        }
+        if (event == undefined) {
+            throw new Error("event is undefined");
+        }
+        this.keyframe[keyframe].event = event
     }
     /**
      * 
@@ -442,17 +451,36 @@ function ClassChangeHandle(new_lines, tr) {
         }
         return;
     }
-    //NIEZNANY
-    regmatch = REGEX_unknown_kill.exec(new_lines[4])
+    //ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
+    regmatch = REGEX_single_kill.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
+        let captured = false
+        console.log(regmatch.groups.reason)
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
-        death_logs += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]\n`
+        if (regmatch.groups.reason.search(REGEX_suicide_reason) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) commited suicide [${regmatch[3]}]\n`
+        }
+        else if (regmatch.groups.reason.search(REGEX_recontained) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) has been recontained\n`
+        }
+        else if (regmatch.groups.reason.search(REGEX_Decayed) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}\n`
+        }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
             tr.style.backgroundColor = 'red'
+        }
+        if (!captured) {
+            throw new Error(`Single kill death was not captured ${regmatch.groups.reason}`);
         }
         return;
     }
