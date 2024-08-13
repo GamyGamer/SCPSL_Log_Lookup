@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.0.4-rc1"
+let version = "0.0.4-rc2"
 let indev = true
 
 
@@ -12,19 +12,14 @@ let indev = true
         - Utworzenie osi czasu z której można łatwo podejrzeć kto jest jaką rolą w danym okresie czasu, może pokoloruj oś podczas detonacji, markery spawnmanager
         - Podświetl wszystkie linijki z danym ID po kliknięciu na linijkę
     TOFIX:
-        - Zombie respawns just isn't detected since it's not logged
-            - Possible fix, when zombie appears in logs check latest role, if it is Spectator: replace with zombie, otherwise do nothing
-                - Loses time precision
-                - If someone died as zombie and was healed back: also mark as zombie [Northwood please fix]
-                - FIXED BY MARKING PREVIOUS INFO WITH SAID ROLE (In vanilla server it should be always spectator)
         - People who escaped but did not appear anywhere in logs up to this point will have start roles marked as their current
             - Bandaid: Specialist > Scientist | Private > Class-D, same for Chaos
             - IT'S NOT POSSIBLE TO GET WHEN SOMEONE ESCAPED SO IT'S EITHER FULL CLASS-D OR FULL PRIVATE [IMO it should be logged, Northwood please fix]
             - I think it's actually better to keep as is, easy lookup if someone escaped
-        -LOGS ARE USING BOTH INTERNAL AND 'TRANSLATED' NAMES FOR ROLES FOR SOME REASON, do translation dictonary to internal
-
-        -Honorable mention:
-            -2024-07-29 10:48:57.923 +02:00 - ??? Według logów osoba 
+        - Martyrdom grenades
+        - Honorable mention:
+            -2024-07-29 10:48:57.923 +02:00 - ??? // INTENTIONAL?
+            -2024-07-30 23:34:36.930 +02:00 - Prawdopodobnie nastąpił martyrdom grenade. Jako że jest to chyba JEDYNY sposób w jaki spectator zabija kogoś i ma zachowaną nadal rolę // TOFIX
 
 
     Struktura timeline [WORKS (I think) BUT NOT USED]
@@ -38,7 +33,8 @@ let indev = true
     Jeśli osoba nie ma żadnej referencji w logach assume pierwszą rolę jaka się pojawi w round_start (what about latejoins?)
 
     assumtions:
-    -Warhead detonation makes foundation inaccessible (report all deaths do detonation)
+    -Warhead detonation makes foundation inaccessible (report all warhead deaths to one event)
+    -It is possible to add another detonation event (ex another one from Remote Admin), it should respect newest one 
     -If someone is seen for the first time assume current role as their first role (unless respawn manager)
 
 */
@@ -185,7 +181,23 @@ class Timeline {
             console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
         }
         this.keyframe[keyframe].player[UserID] = Role
-
+    }
+    /**
+     * 
+     * @param {number} keyframe 
+     * @param {string} userID 
+     */
+    AddKiller(keyframe = undefined, userID = undefined) {
+        if (keyframe == undefined) {
+            throw new Error("keyframe is undefined")
+        }
+        if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
+            throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
+        }
+        if (userID == undefined) {
+            throw new Error("UserID is undefined")
+        }
+        this.keyframe[keyframe].killer = userID;
     }
     /**
      * 
@@ -340,6 +352,11 @@ function MakeTimeLine() {
                         WarheadHandle(new_lines, tr)
                         img.src = "icons/nuclear-explosion.png"
                         break;
+                    case "Networking":
+                        NetworkingHandle(new_lines, tr)
+                        img.src = "icons/na.png"
+                        break;
+
                     default:
                         img.src = "icons/na.png"
                         break;
@@ -436,6 +453,7 @@ function ClassChangeHandle(new_lines, tr) {
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        timeline.AddKiller(current_keyframe, regmatch[3])
 
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
             tr.style.backgroundColor = 'red'
@@ -500,6 +518,7 @@ function ClassChangeHandle(new_lines, tr) {
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        timeline.AddKiller(current_keyframe, regmatch[3])
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
             tr.style.backgroundColor = 'red'
         }
@@ -596,4 +615,30 @@ function WarheadHandle(new_lines, tr) {
     }
 
     //throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
+}
+
+/**
+ * @param {string[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
+function NetworkingHandle(new_lines, tr) {
+    let regmatch = REGEX_networking_ignore.exec(new_lines[4])
+    if (regmatch != null) {
+        return
+    }
+
+    regmatch = REGEX_ID_to_username.exec(new_lines[4])
+    if (regmatch != null) {
+        UserID_assoc[regmatch[1]] = regmatch[2]
+        return
+    }
+
+    regmatch = REGEX_disconnect.exec(new_lines[4])
+    if (regmatch != null) {
+        if (timeline.PlayerExist(regmatch.groups.user)) {
+            timeline.BackPropagatePlayerRole(regmatch.groups.user,regmatch.groups.role)
+        }
+        return;
+    }
+    throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
 }
