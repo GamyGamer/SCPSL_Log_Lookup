@@ -17,11 +17,10 @@ let indev = true
             - IT'S NOT POSSIBLE TO GET WHEN SOMEONE ESCAPED SO IT'S EITHER FULL CLASS-D OR FULL PRIVATE [IMO it should be logged, Northwood please fix]
             - I think it's actually better to keep as is, easy lookup if someone escaped
         - Martyrdom grenades
-        - Honorable mention:
+        - Reference logs:
             -2024-07-29 10:48:57.923 +02:00 - ??? // INTENTIONAL?
             -2024-07-30 23:34:36.930 +02:00 - Prawdopodobnie nastąpił martyrdom grenade. Jako że jest to chyba JEDYNY sposób w jaki spectator zabija kogoś i ma zachowaną nadal rolę // TOFIX
-
-
+            -2024-08-13 11:55:53 - Przeanalizować sytuację z naukowcem
     Struktura timeline [WORKS (I think) BUT NOT USED]
 
     timeline.keyframe[n] - dana klatka kluczowa wyrażona przez n, jeśli n = 0: start rundy
@@ -298,6 +297,7 @@ function MakeTimeLine() {
     window.document.getElementById('welcome').style.display = 'none'
 
     timeline.Clear()
+    console.clear()
     respawn_in_progress = false
     death_logs = new String();
     admin_chat_log.innerText = new String().toString()
@@ -635,9 +635,7 @@ function NetworkingHandle(new_lines, tr) {
 
     regmatch = REGEX_disconnect.exec(new_lines[4])
     if (regmatch != null) {
-        if (timeline.PlayerExist(regmatch.groups.user)) {
-            timeline.BackPropagatePlayerRole(regmatch.groups.user,regmatch.groups.role)
-        }
+            timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
         return;
     }
     throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)

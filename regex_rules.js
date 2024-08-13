@@ -28,5 +28,5 @@ const REGEX_Decayed = /Decayed in the Pocket Dimension/;
 const REGEX_log_split = /(.+?)\|(.+?)\|(.+?)\|(.+)/;
 
 //Networkig events
-const REGEX_networking_ignore = /(.*? preauthenticated from endpoint .*? \[routed via .*?]\.|.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.)/;
+const REGEX_networking_ignore = /(.*? preauthenticated from endpoint .*? \[routed via .*?]\.|.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.|Banned player .*? tried to connect from endpoint .*? \[routed via .*?\]\.)|.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\./;
 const REGEX_disconnect = /.*? \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./
