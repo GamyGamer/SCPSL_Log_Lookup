@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.0.3"
+let version = "0.1.0"
 let indev = false
 
 
@@ -11,23 +11,16 @@ let indev = false
     TODO:
         - Utworzenie osi czasu z której można łatwo podejrzeć kto jest jaką rolą w danym okresie czasu, może pokoloruj oś podczas detonacji, markery spawnmanager
         - Podświetl wszystkie linijki z danym ID po kliknięciu na linijkę
-
-        -CHANGE ROLES
     TOFIX:
-        - Death with only one person is marked as suicide
-            - People in pocket dimension are considered to commit no alive
-        - Zombie respawns just isn't detected since it's not logged
-            - Possible fix, when zombie appears in logs check latest role, if it is Spectator: replace with zombie, otherwise do nothing
-                - Loses time precision
-                - If someone died as zombie and was healed back: also mark as zombie [Northwood please fix]
-                - FIXED BY MARKING PREVIOUS INFO WITH SAID ROLE (In vanilla server it should be always spectator)
         - People who escaped but did not appear anywhere in logs up to this point will have start roles marked as their current
             - Bandaid: Specialist > Scientist | Private > Class-D, same for Chaos
             - IT'S NOT POSSIBLE TO GET WHEN SOMEONE ESCAPED SO IT'S EITHER FULL CLASS-D OR FULL PRIVATE [IMO it should be logged, Northwood please fix]
             - I think it's actually better to keep as is, easy lookup if someone escaped
-        -LOGS ARE USING BOTH INTERNAL AND 'TRANSLATED' NAMES FOR ROLES FOR SOME REASON, do translation dictonary to internal
-
-
+        - Martyrdom grenades
+        - Reference logs:
+            -2024-07-29 10:48:57.923 +02:00 - ??? // INTENTIONAL?
+            -2024-07-30 23:34:36.930 +02:00 - Prawdopodobnie nastąpił martyrdom grenade. Jako że jest to chyba JEDYNY sposób w jaki spectator zabija kogoś i ma zachowaną nadal rolę // TOFIX
+            -2024-08-13 11:55:53 - Przeanalizować sytuację z naukowcem
     Struktura timeline [WORKS (I think) BUT NOT USED]
 
     timeline.keyframe[n] - dana klatka kluczowa wyrażona przez n, jeśli n = 0: start rundy
@@ -39,7 +32,8 @@ let indev = false
     Jeśli osoba nie ma żadnej referencji w logach assume pierwszą rolę jaka się pojawi w round_start (what about latejoins?)
 
     assumtions:
-    -Warhead detonation makes foundation inaccessible (report all deaths do detonation)
+    -Warhead detonation makes foundation inaccessible (report all warhead deaths to one event)
+    -It is possible to add another detonation event (ex another one from Remote Admin), it should respect newest one 
     -If someone is seen for the first time assume current role as their first role (unless respawn manager)
 
 */
@@ -129,6 +123,10 @@ class Timeline {
         if (Role == undefined) {
             throw new Error("Unable to translate undefined role")
         }
+        if (Role == "None") {
+            console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
+            return "None"
+        }
         for (const [internal, translated] of Object.entries(timeline.role_dictonary)) {
             if (Role == internal || Role == translated) {
                 return internal
@@ -142,12 +140,25 @@ class Timeline {
      * @param {string} event 
      * @return {number}
      */
-    NewKeyFrame(timestamp = null, event = null) {
+    NewKeyFrame(timestamp = undefined, event = undefined) {
         let current_keyframe = this.keyframe.push(new Object()) - 1;
         this.keyframe[current_keyframe].timestamp = timestamp;
         this.keyframe[current_keyframe].event = event;
         this.keyframe[current_keyframe].player = new Object();
         return current_keyframe;
+    }
+    /**
+     * @param {number} keyframe
+     * @param {string} event
+     */
+    EditKeyFrameEvent(keyframe, event) {
+        if (keyframe == undefined) {
+            throw new Error("keyframe is undefined");
+        }
+        if (event == undefined) {
+            throw new Error("event is undefined");
+        }
+        this.keyframe[keyframe].event = event
     }
     /**
      * 
@@ -169,8 +180,27 @@ class Timeline {
             throw new Error("Role is null")
         }
         Role = this.TranslateToInternal(Role)
+        if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != Role) {
+            console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+        }
         this.keyframe[keyframe].player[UserID] = Role
-
+    }
+    /**
+     * 
+     * @param {number} keyframe 
+     * @param {string} userID 
+     */
+    AddKiller(keyframe = undefined, userID = undefined) {
+        if (keyframe == undefined) {
+            throw new Error("keyframe is undefined")
+        }
+        if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
+            throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
+        }
+        if (userID == undefined) {
+            throw new Error("UserID is undefined")
+        }
+        this.keyframe[keyframe].killer = userID;
     }
     /**
      * 
@@ -265,16 +295,19 @@ let new_lines = new Array();
 let death_logs = new String();
 const admin_chat_log = window.document.getElementById('admin_chat');
 let UserID_assoc = new Object();
+let IPaddress_assoc = new Object();
 let respawn_in_progress = false
 
 function MakeTimeLine() {
     window.document.getElementById('welcome').style.display = 'none'
 
     timeline.Clear()
+    console.clear()
     respawn_in_progress = false
     death_logs = new String();
     admin_chat_log.innerText = new String().toString()
     UserID_assoc = new Object();
+    IPaddress_assoc = new Object();
     let filereader = new FileReader();
 
 
@@ -325,6 +358,11 @@ function MakeTimeLine() {
                         WarheadHandle(new_lines, tr)
                         img.src = "icons/nuclear-explosion.png"
                         break;
+                    case "Networking":
+                        NetworkingHandle(new_lines, tr)
+                        img.src = "icons/na.png"
+                        break;
+
                     default:
                         img.src = "icons/na.png"
                         break;
@@ -342,10 +380,10 @@ function MakeTimeLine() {
                 }
 
                 //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
-                let regmatch = REGEX_ID_to_username.exec(new_lines[4])
-                if (regmatch != null) {
-                    UserID_assoc[regmatch[1]] = regmatch[2]
-                }
+                // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
+                // if (regmatch != null) {
+                //     UserID_assoc[regmatch[1]] = regmatch[2]
+                // }
 
                 tbody.appendChild(tr)
             }
@@ -367,11 +405,33 @@ function MakeTimeLine() {
             return;
         }
         for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
-            monitored_users.forEach(element => {
+            monitored_users.UserID.forEach(element => {
                 if (element == userID) {
                     alert(`Monitored user ${Nickname} (${userID}) was found`)
                 }
             })
+        }
+        for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
+            monitored_users.IPaddress.forEach(element => {
+                let DatabaseIP = REGEX_IPaddress_split.exec(element)
+                let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
+                if (DatabaseIP != null && PlayerIP != null) {
+                    let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
+                    let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
+                    if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
+                        player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+                        db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+
+                    }
+                    if (db_IP == player_IP) {
+                        alert(`Monitored user ${UserID_assoc[userID]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`)
+                    }
+                }
+                else {
+                    throw new Error(`Unable to split network address ${element}`);
+                }
+            })
+
         }
     }
 }
@@ -421,6 +481,7 @@ function ClassChangeHandle(new_lines, tr) {
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        timeline.AddKiller(current_keyframe, regmatch[3])
 
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
             tr.style.backgroundColor = 'red'
@@ -442,17 +503,35 @@ function ClassChangeHandle(new_lines, tr) {
         }
         return;
     }
-    //NIEZNANY
-    regmatch = REGEX_unknown_kill.exec(new_lines[4])
+    //ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
+    regmatch = REGEX_single_kill.exec(new_lines[4])
     if (regmatch != null) {
-        let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
+        let captured = false
+        let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
-        death_logs += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]\n`
+        if (regmatch.groups.reason.search(REGEX_suicide_reason) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) commited suicide [${regmatch[3]}]\n`
+        }
+        else if (regmatch.groups.reason.search(REGEX_recontained) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) has been recontained\n`
+        }
+        else if (regmatch.groups.reason.search(REGEX_Decayed) != -1) {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}\n`
+        }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
             tr.style.backgroundColor = 'red'
+        }
+        if (!captured) {
+            throw new Error(`Single kill death was not captured "${regmatch.groups.reason}"`);
         }
         return;
     }
@@ -467,6 +546,7 @@ function ClassChangeHandle(new_lines, tr) {
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+        timeline.AddKiller(current_keyframe, regmatch[3])
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
             tr.style.backgroundColor = 'red'
         }
@@ -563,4 +643,33 @@ function WarheadHandle(new_lines, tr) {
     }
 
     //throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
+}
+
+/**
+ * @param {string[]} new_lines
+ * @param {HTMLTableRowElement} tr
+ */
+function NetworkingHandle(new_lines, tr) {
+    let regmatch = REGEX_networking_ignore.exec(new_lines[4])
+    if (regmatch != null) {
+        return
+    }
+
+    regmatch = REGEX_ID_to_username.exec(new_lines[4])
+    if (regmatch != null) {
+        UserID_assoc[regmatch[1]] = regmatch[2]
+        return
+    }
+
+    regmatch = REGEX_preauth.exec(new_lines[4])
+    if (regmatch != null) {
+        IPaddress_assoc[regmatch.groups.IPaddress] = regmatch.groups.UserID
+        return
+    }
+    regmatch = REGEX_disconnect.exec(new_lines[4])
+    if (regmatch != null) {
+        timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
+        return;
+    }
+    throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
 }
