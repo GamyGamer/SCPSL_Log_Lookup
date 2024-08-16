@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.0.4-rc3"
-let indev = true
+let version = "0.1.0"
+let indev = false
 
 
 /*
