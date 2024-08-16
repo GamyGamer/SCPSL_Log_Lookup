@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.0.4-rc2"
+let version = "0.0.4-rc3"
 let indev = true
 
 
@@ -122,6 +122,10 @@ class Timeline {
     TranslateToInternal(Role) {
         if (Role == undefined) {
             throw new Error("Unable to translate undefined role")
+        }
+        if (Role == "None") {
+            console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
+            return "None"
         }
         for (const [internal, translated] of Object.entries(timeline.role_dictonary)) {
             if (Role == internal || Role == translated) {
@@ -291,6 +295,7 @@ let new_lines = new Array();
 let death_logs = new String();
 const admin_chat_log = window.document.getElementById('admin_chat');
 let UserID_assoc = new Object();
+let IPaddress_assoc = new Object();
 let respawn_in_progress = false
 
 function MakeTimeLine() {
@@ -302,6 +307,7 @@ function MakeTimeLine() {
     death_logs = new String();
     admin_chat_log.innerText = new String().toString()
     UserID_assoc = new Object();
+    IPaddress_assoc = new Object();
     let filereader = new FileReader();
 
 
@@ -374,10 +380,10 @@ function MakeTimeLine() {
                 }
 
                 //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
-                let regmatch = REGEX_ID_to_username.exec(new_lines[4])
-                if (regmatch != null) {
-                    UserID_assoc[regmatch[1]] = regmatch[2]
-                }
+                // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
+                // if (regmatch != null) {
+                //     UserID_assoc[regmatch[1]] = regmatch[2]
+                // }
 
                 tbody.appendChild(tr)
             }
@@ -399,11 +405,33 @@ function MakeTimeLine() {
             return;
         }
         for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
-            monitored_users.forEach(element => {
+            monitored_users.UserID.forEach(element => {
                 if (element == userID) {
                     alert(`Monitored user ${Nickname} (${userID}) was found`)
                 }
             })
+        }
+        for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
+            monitored_users.IPaddress.forEach(element => {
+                let DatabaseIP = REGEX_IPaddress_split.exec(element)
+                let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
+                if (DatabaseIP != null && PlayerIP != null) {
+                    let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
+                    let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
+                    if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
+                        player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+                        db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+
+                    }
+                    if (db_IP == player_IP) {
+                        alert(`Monitored user ${UserID_assoc[userID]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`)
+                    }
+                }
+                else {
+                    throw new Error(`Unable to split network address ${element}`);
+                }
+            })
+
         }
     }
 }
@@ -633,9 +661,14 @@ function NetworkingHandle(new_lines, tr) {
         return
     }
 
+    regmatch = REGEX_preauth.exec(new_lines[4])
+    if (regmatch != null) {
+        IPaddress_assoc[regmatch.groups.IPaddress] = regmatch.groups.UserID
+        return
+    }
     regmatch = REGEX_disconnect.exec(new_lines[4])
     if (regmatch != null) {
-            timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
+        timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
         return;
     }
     throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)

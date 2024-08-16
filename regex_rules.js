@@ -28,5 +28,7 @@ const REGEX_Decayed = /Decayed in the Pocket Dimension/;
 const REGEX_log_split = /(.+?)\|(.+?)\|(.+?)\|(.+)/;
 
 //Networkig events
-const REGEX_networking_ignore = /(.*? preauthenticated from endpoint .*? \[routed via .*?]\.|.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.|Banned player .*? tried to connect from endpoint .*? \[routed via .*?\]\.)|.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\./;
-const REGEX_disconnect = /.*? \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./
+const REGEX_networking_ignore = /(.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.|Banned player .*? tried to connect from endpoint .*? \[routed via .*?\]\.)|.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\./;
+const REGEX_disconnect = /.*? \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./;
+const REGEX_preauth = /(?<UserID>.*?) preauthenticated from endpoint (?<IPaddress>.*?) \[routed via .*?\]\./;
+const REGEX_IPaddress_split = /(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?/;
