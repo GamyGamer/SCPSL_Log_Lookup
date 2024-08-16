@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.1.0"
+let version = "0.1.1"
 let indev = false
 
 
@@ -523,6 +523,12 @@ function ClassChangeHandle(new_lines, tr) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
             death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}\n`
+        }
+        else {
+            captured = true
+            timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
+            console.log(`unknown kill reason "${regmatch.groups.reason}"`)
+            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) [${regmatch[3]}]\n`
         }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
