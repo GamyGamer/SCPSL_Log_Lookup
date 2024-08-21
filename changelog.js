@@ -6,7 +6,11 @@ let changelog = {
     '0.1.0': `Niektóre śmierci są już poprawnie oznaczane (recontained/implikowane samobójstwo/pocket dimension)
     Przechywywanie roli podczas rozłączania się z serwera (ważne podczas zamykania rundy)
     Logowanie morderców przy evencie typu 'kill'
-    System monitoringu bazowany na UserID oraz adresach IPv4 (z CIDR)`
+    System monitoringu bazowany na UserID oraz adresach IPv4 (z CIDR)`,
+    '0.1.1': `Tymczasowe wyłączenie strażnika na zmianę roli (SCP-3114 psuje)`,
+    '0.1.2': `Ostrzeganie w konsoli w razie nietypowej zmiany roli
+    Poprawa przechwytywania IP
+    Logowanie fali spawnów`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.1.1"
+let version = "0.1.2"
 let indev = false
 
 
@@ -181,7 +181,12 @@ class Timeline {
         }
         Role = this.TranslateToInternal(Role)
         if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != Role) {
-            console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+            if (Role != 'Scp0492') { // Write as error
+                console.warn(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+            }
+            else {
+                console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+            }
         }
         this.keyframe[keyframe].player[UserID] = Role
     }
@@ -241,7 +246,6 @@ class Timeline {
      * @param {number} keyframe 
      * @returns {number} index
      */
-    //TODO: OPTIONAL ROLE
     FindNewestPlayer(UserID, Role = undefined, keyframe = undefined) {
         if (!this.PlayerExist(UserID)) {
             throw new Error(`Player ${UserID} Does not exists`)
@@ -527,7 +531,7 @@ function ClassChangeHandle(new_lines, tr) {
         else {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
-            console.log(`unknown kill reason "${regmatch.groups.reason}"`)
+            console.warn(`unknown kill reason "${regmatch.groups.reason}"`)
             death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) [${regmatch[3]}]\n`
         }
 
@@ -562,6 +566,7 @@ function ClassChangeHandle(new_lines, tr) {
     //SPAWN WAVE 1/2
     regmatch = REGEX_Respawned_as.exec(new_lines[4])
     if (regmatch != null) {
+        death_logs+=`${regmatch[1]} spawned as ${regmatch[2]}\n`
         if (!respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
             timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
@@ -588,7 +593,7 @@ function ClassChangeHandle(new_lines, tr) {
         return;
 
     }
-    throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
+    // throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
 }
 
 
