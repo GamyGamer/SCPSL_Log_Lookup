@@ -10,7 +10,9 @@ let changelog = {
     '0.1.1': `Tymczasowe wyłączenie strażnika na zmianę roli (SCP-3114 psuje)`,
     '0.1.2': `Ostrzeganie w konsoli w razie nietypowej zmiany roli
     Poprawa przechwytywania IP
-    Logowanie fali spawnów`
+    Logowanie fali spawnów`,
+    '0.1.3': `Dodanie legendy kolorów
+    Wypisywanie błędów z wersji 0.1.1 do konsoli zamiast zatrzymywać instant`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.1.2"
+let version = "0.1.3"
 let indev = false
 
 
@@ -593,6 +593,7 @@ function ClassChangeHandle(new_lines, tr) {
         return;
 
     }
+    console.error(`Could not parse Change class event.: ${new_lines[4]}`)
     // throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
 }
 
