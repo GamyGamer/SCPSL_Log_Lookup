@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.1.3"
-let indev = false
+let version = "0.2.0-indev"
+let indev = true
 
 
 /*
@@ -304,6 +304,16 @@ let respawn_in_progress = false
 
 function MakeTimeLine() {
     window.document.getElementById('welcome').style.display = 'none'
+    window.document.getElementById('log_select').innerHTML=''
+    for (let index = 0; index < this.files.length; index++) {
+        let li = window.document.createElement('li')
+        li.innerText=`${this.files[index].name}`
+        if (index==0) {
+            li.className='selected'
+        }
+        window.document.getElementById('log_select').appendChild(li);
+    }
+
 
     timeline.Clear()
     console.clear()

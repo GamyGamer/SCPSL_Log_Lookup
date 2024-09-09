@@ -6,6 +6,52 @@
     font-family: 'Courier New', Courier, monospace;
 }
 
+menu {
+    margin: 0%;
+    padding: 0%;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+}
+nav{
+    overflow: auto;
+    white-space: nowrap;
+}
+
+menu li {
+    list-style: none;
+    display: inline-block;
+    border: 2px outset white;
+    /* border-top: 0px;
+    border-left: 0px; */
+    padding: 2px;
+    user-select: none;
+}
+
+menu li.selected {
+    border-top-color: rgb(79, 219, 86) !important;
+    border-bottom: 0px !important;
+    border-top-style: outset;
+
+}
+menu li.selected:active{
+    border-style: inset;
+}
+
+menu li:hover {
+    background-color: gray;
+}
+
+menu li:active {
+    border: 2px inset white;
+}
+
+
+/* Theme specific */
 @media (prefers-color-scheme: light) {
 
     table,

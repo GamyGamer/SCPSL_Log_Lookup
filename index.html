@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="pl">
 
+<!--
+    TODO:
+    Localstorage: (zapamiętywanie adresów zbanowanych)
+    Import/Export: (ustawienia/adresy)
+    Fancy menu (w nim ustawienia)
+    Privacy policy: (legal mumbo jumbo o zapisywaniu danych na urządzeniach)
+-->
+
 <head>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="icons/04a05d51c636d09507a1d5a7c34278f7.webp" type="image/x-icon">
@@ -11,13 +19,29 @@
 </head>
 
 <body style="margin: 0;">
-    <div style="width: 100%; background-color: red; color: white; text-align: center; font-size: x-large; display: none;"
-        id="error_bar">WYSTĄPIŁ BŁĄD [ERROR CODE W KONSOLI]</div>
-    <div style="width: 100%; background-color: orange; color: white; text-align: center; font-size: x-large; display: none;"
-        id="warn_bar">WERSJA POGLĄDOWA</div>
-    <br>
-    <input type="file" id="fileInput">
-    <br>
+    <header>
+        <div style="width: 100%; background-color: red; color: white; text-align: center; font-size: x-large; display: none;"
+            id="error_bar">WYSTĄPIŁ BŁĄD [ERROR CODE W KONSOLI]</div>
+        <div style="width: 100%; background-color: orange; color: white; text-align: center; font-size: x-large; display: none;"
+            id="warn_bar">WERSJA POGLĄDOWA</div>
+
+    </header>
+
+    <menu>
+        <input type="file" id="fileInput" accept=".txt" multiple>
+        <br>
+        <nav id="log_select">
+        </nav>
+    </menu>
+    <div style="border: 4px dashed red; display: none;">
+        USTAWIENIA
+        <form>
+            Kolor Śmierci:<input type="color" name="" id="notable_death" value="#FF0000"><br>
+            Kolor Nietypowych Śmierci:<input type="color" name="" id="unusual_death" value="#6495ed"><br>
+            Kolor Warhead:<input type="color" name="" id="warhead_event" value="#008080"><br> <br>
+            Kolor Loggera:<input type="color" name="" id="logger_event" value="#ffa500"><br>
+        </form>
+    </div>
     <div id="welcome">
         Autor: GamyGamer (306161751077158933) <br>
         Witaj! Stworzyłem ten program głównie po to aby szybciej podejrzeć logi serwerowe <br>
@@ -28,10 +52,10 @@
         timeline.keyframe <br>
         <br>
         LEGENDA: <br>
-        <span style="color: red;">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
-        <span style="color: cornflowerblue;">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane itp.)<br> 
-        <span style="color: teal;">██</span>: Eventy Warhead <br>
-        <span style="color: orange;">██</span>: Eventy Loggera <br>
+        <span style="color: red;" class="notable_death">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
+        <span style="color: #6495ed;" class="unusual_death">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane itp.)<br>
+        <span style="color: #008080;" class="warhead_event">██</span>: Eventy Warhead <br>
+        <span style="color: #ffa500;" class="logger_event">██</span>: Eventy Loggera <br>
         <br>
         <a href="https://github.com/GamyGamer/SCPSL_Log_Lookup">Link</a> do repozytorium z kodem gdzie można
         bezpośrednio pobrać
@@ -39,7 +63,8 @@
     <!-- <pre id="output"></pre> -->
 
     <!-- Ikona | Czas | Typ | Powód | Linijka -->
-    <div>
+
+    <main>
         <table>
             <tbody id="table">
                 <tr>
@@ -63,10 +88,12 @@
         <span id="admin_chat"></span>
         <span id="version">version: UNKNOWN [script failed to load?]</span>
         <br>
-        <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a>
-
-    </div>
+        <footer>
+            <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a>
+        </footer>
+    </main>
     <script src="script.js"></script>
+    <script src="settings.js"></script>
 </body>
 
 </html>
