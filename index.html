@@ -6,7 +6,9 @@
     Localstorage: (zapamiętywanie adresów zbanowanych)
     Import/Export: (ustawienia/adresy)
     Fancy menu (w nim ustawienia)
+    Dynamiczna legenda (zobaczyć jak dynamicznie zmienić parametry CSS)
     Privacy policy: (legal mumbo jumbo o zapisywaniu danych na urządzeniach)
+    Remember Banned user for specific time period
 -->
 
 <head>
@@ -24,9 +26,7 @@
             id="error_bar">WYSTĄPIŁ BŁĄD [ERROR CODE W KONSOLI]</div>
         <div style="width: 100%; background-color: orange; color: white; text-align: center; font-size: x-large; display: none;"
             id="warn_bar">WERSJA POGLĄDOWA</div>
-
     </header>
-
     <menu>
         <input type="file" id="fileInput" accept=".txt" multiple>
         <br>
@@ -42,6 +42,7 @@
             Kolor Loggera:<input type="color" name="" id="logger_event" value="#ffa500"><br>
         </form>
     </div>
+    <progress id="progress_bar" style="width: 100%; display: none;">test</progress>
     <div id="welcome">
         Autor: GamyGamer (306161751077158933) <br>
         Witaj! Stworzyłem ten program głównie po to aby szybciej podejrzeć logi serwerowe <br>
@@ -52,46 +53,23 @@
         timeline.keyframe <br>
         <br>
         LEGENDA: <br>
-        <span style="color: red;" class="notable_death">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
-        <span style="color: #6495ed;" class="unusual_death">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane itp.)<br>
-        <span style="color: #008080;" class="warhead_event">██</span>: Eventy Warhead <br>
-        <span style="color: #ffa500;" class="logger_event">██</span>: Eventy Loggera <br>
+        <span class="notable_death">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
+        <span class="unusual_death">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane
+        itp.)<br>
+        <span class="warhead_event">██</span>: Eventy Warhead <br>
+        <span class="logger_event">██</span>: Eventy Loggera <br>
         <br>
         <a href="https://github.com/GamyGamer/SCPSL_Log_Lookup">Link</a> do repozytorium z kodem gdzie można
         bezpośrednio pobrać
     </div>
-    <!-- <pre id="output"></pre> -->
-
-    <!-- Ikona | Czas | Typ | Powód | Linijka -->
-
     <main>
-        <table>
-            <tbody id="table">
-                <tr>
-                    <td><img src="icons/log.png"></td>
-                    <td>2024-07-26 10:40:24.236 +02:00</td>
-                    <td>Internal</td>
-                    <td>Logger</td>
-                    <td>Started logging.</td>
-                </tr>
-                <tr>
-                    <td><img src="icons/na.png"></td>
-                    <td>Teraz + 1</td>
-                    <td>Kill</td>
-                    <td>Death</td>
-                    <td>Padł i se leży</td>
-                </tr>
-            </tbody>
-        </table>
-        <span id="death_logs"></span>
         <hr>
-        <span id="admin_chat"></span>
+    </main>
+    <footer>
         <span id="version">version: UNKNOWN [script failed to load?]</span>
         <br>
-        <footer>
-            <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a>
-        </footer>
-    </main>
+        <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a> <a href="privacy.html">PRIVACY POLICY</a>
+    </footer>
     <script src="script.js"></script>
     <script src="settings.js"></script>
 </body>

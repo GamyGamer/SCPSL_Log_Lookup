@@ -49,6 +49,12 @@ menu li:hover {
 menu li:active {
     border: 2px inset white;
 }
+article{
+    display: none;
+}
+article.selected{
+    display: block;
+}
 
 
 /* Theme specific */

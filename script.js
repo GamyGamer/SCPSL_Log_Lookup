@@ -127,7 +127,7 @@ class Timeline {
             console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
             return "None"
         }
-        for (const [internal, translated] of Object.entries(timeline.role_dictonary)) {
+        for (const [internal, translated] of Object.entries(this.role_dictonary)) {
             if (Role == internal || Role == translated) {
                 return internal
             }
@@ -237,7 +237,7 @@ class Timeline {
                 return index
             }
         }
-        throw new Error("Event does not exist")
+        throw new Error(`Event ${event} does not exist`)
     }
     /**
      * Method to find newest keyframe index, passing Role and keyframe narrows searching 
@@ -292,161 +292,217 @@ class Timeline {
 
 }
 
-let timeline = new Timeline()
+let timeline = new Object();
 let Role = new Roles();
 let lines = new Array();
 let new_lines = new Array();
-let death_logs = new String();
-const admin_chat_log = window.document.getElementById('admin_chat');
 let UserID_assoc = new Object();
 let IPaddress_assoc = new Object();
-let respawn_in_progress = false
+const article_array = new Object();
+
+function Selector() {
+    this.parentElement.childNodes.forEach(element => {
+        if (element.getAttribute('class') != null) {
+            element.removeAttribute('class')
+        }
+    });
+    this.setAttribute('class', 'selected')
+    let index = 0;
+    let currentItem = this
+    while (currentItem.previousSibling) {
+        currentItem = currentItem.previousSibling
+        index++
+    }
+    console.log(index)
+    const main = window.document.getElementsByTagName('main')[0]
+    main.getElementsByClassName('selected')[0].removeAttribute('class')
+
+    main.children[index].setAttribute('class', 'selected')
+
+
+    //TODO: HIDE AND SELECT
+}
 
 function MakeTimeLine() {
+    window.document.getElementById('progress_bar').style.display='block'
     window.document.getElementById('welcome').style.display = 'none'
-    window.document.getElementById('log_select').innerHTML=''
+    window.document.getElementById('log_select').innerHTML = ''
+    window.document.getElementsByTagName('main')[0].innerHTML = ''
     for (let index = 0; index < this.files.length; index++) {
         let li = window.document.createElement('li')
-        li.innerText=`${this.files[index].name}`
-        if (index==0) {
-            li.className='selected'
+        // li.id=`file_selector_${index}` // 
+        li.addEventListener("click", Selector)
+        li.innerText = `${this.files[index].name}`
+        if (index == 0) {
+            li.className = 'selected'
         }
         window.document.getElementById('log_select').appendChild(li);
     }
-
-
-    timeline.Clear()
+    timeline = new Object();
     console.clear()
-    respawn_in_progress = false
-    death_logs = new String();
-    admin_chat_log.innerText = new String().toString()
     UserID_assoc = new Object();
     IPaddress_assoc = new Object();
-    let filereader = new FileReader();
+    let progressbar_current = 0
+    window.document.getElementById('progress_bar').setAttribute('max', (this.files.length - 1).toString())
+
+
+    for (const [index, file] of Object.entries(this.files)) {
+        console.log(`${index}: ${file}`)
+        let filereader = new FileReader();
+        filereader.addEventListener('load', () => {
+
+            // DOM CREATION
+            const article = window.document.createElement('article')
+            const table = window.document.createElement('table')
+            const tbody = window.document.createElement('tbody')
+            const death_log = window.document.createElement('span')
+            const admin_chat_log = window.document.createElement('span')
+
+            table.appendChild(tbody)
+
+            article.appendChild(table)
+            article.appendChild(death_log)
+            let death_log_text = new String().toString();
+
+            article.appendChild(window.document.createElement('hr'))
+            article.appendChild(admin_chat_log)
 
 
 
-    filereader.readAsText(this.files[0])
-    filereader.onload = function () {
-        // document.getElementById('output').textContent = filereader.result;
-        // @ts-ignore
-        lines = filereader.result.split('\n');
+            let respawn_in_progress = false
+            window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
+            timeline[index] = new Timeline();
+            console.debug(index)
+            // document.getElementById('output').textContent = filereader.result;
+            // @ts-ignore
+            lines = filereader.result.split('\n');
 
-        const tbody = document.getElementById('table')
-        tbody.innerHTML = ""
-        lines.forEach(element => {
-            if (element == "") {
+            // const tbody = document.getElementById('table')
+            tbody.innerHTML = ""
+            lines.forEach(element => {
+                if (element == "") {
+                    return;
+                }
+                new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+                if (new_lines == null) {
+                    throw new Error(`Error splitting ${element}`);
+                }
+                if (new_lines.length != 5) {
+                    throw new Error(`Error splitting ${element}`);
+                }
+
+                else {
+                    for (let index = 0; index < new_lines.length; index++) {
+                        new_lines[index] = new_lines[index].trim(); // Remove leading spaces
+                    }
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    const img = document.createElement('img');
+
+
+                    switch (new_lines[3]) {
+                        case "Administrative":
+                            AdministativeHandle(new_lines, tr, timeline[index], admin_chat_log)
+                            img.src = "icons/shield.png"
+                            break;
+                        case "Logger":
+                            LoggerHandle(new_lines, tr, timeline[index])
+                            img.src = "icons/log.png"
+                            break;
+                        case "Class change":
+                            ClassChangeHandle(new_lines, tr, timeline[index], respawn_in_progress, death_log)
+                            img.src = "icons/swap.png"
+                            break;
+                        case "Warhead":
+                            WarheadHandle(new_lines, tr, timeline[index])
+                            img.src = "icons/nuclear-explosion.png"
+                            break;
+                        case "Networking":
+                            NetworkingHandle(new_lines, tr, timeline[index])
+                            img.src = "icons/na.png"
+                            break;
+
+                        default:
+                            img.src = "icons/na.png"
+                            break;
+                    }
+
+                    td.appendChild(img)
+                    tr.appendChild(td)
+                    for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
+                        const td = document.createElement('td');
+                        td.textContent = new_lines[index]
+                        tr.appendChild(td)
+                    }
+                    if (new_lines[4].search(REGEX_scp_intentional_deaths) != -1) {
+                        tr.style.backgroundColor = 'cornflowerblue';
+                    }
+
+                    //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
+                    // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
+                    // if (regmatch != null) {
+                    //     UserID_assoc[regmatch[1]] = regmatch[2]
+                    // }
+
+                    tbody.appendChild(tr)
+                }
+
+
+            });
+            if (!(admin_chat_log.innerText == '')) {
+                admin_chat_log.appendChild(window.document.createElement('hr'))
+            }
+
+            if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
+                /*
+                If you want to use this functionality type in console:
+                let monitored_users = new Array()
+                monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
+                */
                 return;
             }
-            new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
-            if (new_lines == null) {
-                throw new Error(`Error splitting ${element}`);
-            }
-            if (new_lines.length != 5) {
-                throw new Error(`Error splitting ${element}`);
-            }
-
-            else {
-                for (let index = 0; index < new_lines.length; index++) {
-                    new_lines[index] = new_lines[index].trim(); // Remove leading spaces
-                }
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                const img = document.createElement('img');
-
-
-                switch (new_lines[3]) {
-                    case "Administrative":
-                        AdministativeHandle(new_lines, tr)
-                        img.src = "icons/shield.png"
-                        break;
-                    case "Logger":
-                        LoggerHandle(new_lines, tr)
-                        img.src = "icons/log.png"
-                        break;
-                    case "Class change":
-                        ClassChangeHandle(new_lines, tr)
-                        img.src = "icons/swap.png"
-                        break;
-                    case "Warhead":
-                        WarheadHandle(new_lines, tr)
-                        img.src = "icons/nuclear-explosion.png"
-                        break;
-                    case "Networking":
-                        NetworkingHandle(new_lines, tr)
-                        img.src = "icons/na.png"
-                        break;
-
-                    default:
-                        img.src = "icons/na.png"
-                        break;
-                }
-
-                td.appendChild(img)
-                tr.appendChild(td)
-                for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
-                    const td = document.createElement('td');
-                    td.textContent = new_lines[index]
-                    tr.appendChild(td)
-                }
-                if (new_lines[4].search(REGEX_scp_intentional_deaths) != -1) {
-                    tr.style.backgroundColor = 'cornflowerblue';
-                }
-
-                //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
-                // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
-                // if (regmatch != null) {
-                //     UserID_assoc[regmatch[1]] = regmatch[2]
-                // }
-
-                tbody.appendChild(tr)
-            }
-
-
-        });
-        window.document.getElementById('death_logs').innerText = death_logs.toString()
-        if (!(admin_chat_log.innerText == '')) {
-            admin_chat_log.appendChild(window.document.createElement('hr'))
-        }
-
-        if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
-            /*
-            If you want to use this functionality type in console:
-            let monitored_users = new Array()
-            monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
-
-            */
-            return;
-        }
-        for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
-            monitored_users.UserID.forEach(element => {
-                if (element == userID) {
-                    alert(`Monitored user ${Nickname} (${userID}) was found`)
-                }
-            })
-        }
-        for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
-            monitored_users.IPaddress.forEach(element => {
-                let DatabaseIP = REGEX_IPaddress_split.exec(element)
-                let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
-                if (DatabaseIP != null && PlayerIP != null) {
-                    let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
-                    let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
-                    if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
-                        player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
-                        db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
-
+            for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
+                monitored_users.UserID.forEach(element => {
+                    if (element == userID) {
+                        alert(`Monitored user ${Nickname} (${userID}) was found`)
                     }
-                    if (db_IP == player_IP) {
-                        alert(`Monitored user ${UserID_assoc[userID]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`)
-                    }
-                }
-                else {
-                    throw new Error(`Unable to split network address ${element}`);
-                }
-            })
+                })
+            }
+            for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
+                monitored_users.IPaddress.forEach(element => {
+                    let DatabaseIP = REGEX_IPaddress_split.exec(element)
+                    let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
+                    if (DatabaseIP != null && PlayerIP != null) {
+                        let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
+                        let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
+                        if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
+                            player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+                            db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
 
-        }
+                        }
+                        if (db_IP == player_IP) {
+                            alert(`Monitored user ${UserID_assoc[userID]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`)
+                        }
+                    }
+                    else {
+                        throw new Error(`Unable to split network address ${element}`);
+                    }
+                })
+            }
+            article_array[index] = article;
+            if (progressbar_current == this.files.length) {
+                console.debug('ready to display')
+                for (const [index, article] of Object.entries(article_array)) {
+                    if (Number(index) == 0) {
+                        article.setAttribute('class', 'selected')
+                    }
+                    window.document.getElementsByTagName('main')[0].appendChild(article)
+                }
+                window.document.getElementById('progress_bar').setAttribute('max', (this.files.length).toString())
+                window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current).toString())
+            }
+        }, { once: true })
+        filereader.readAsText(file)
     }
 }
 
@@ -456,16 +512,17 @@ window.addEventListener('error', (ErrorEvent) => {
 if (indev) {
     document.getElementById('warn_bar').style.display = 'block';
 }
-
 window.document.getElementById('version').innerText = `Version: ${version}`
-
 document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
 
 /**
  * @param {any[]} new_lines
  * @param {HTMLTableRowElement} tr
+ * @param {Timeline} timeline
+ * @param {Boolean} respawn_in_progress
+ * @param {HTMLSpanElement} death_log 
  */
-function ClassChangeHandle(new_lines, tr) {
+function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_log) {
     // tr.style.backgroundColor = 'red'
 
     //HIGH PRIORITY
@@ -474,8 +531,7 @@ function ClassChangeHandle(new_lines, tr) {
     let regmatch = REGEX_warhead_death.exec(new_lines[4])
     if (regmatch != null) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
-        death_logs += `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead\n`
-
+        DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
 
@@ -490,7 +546,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-        death_logs += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]\n`
+        DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
@@ -508,7 +564,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
-        death_logs += `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]\n`
+        DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
@@ -526,23 +582,23 @@ function ClassChangeHandle(new_lines, tr) {
         if (regmatch.groups.reason.search(REGEX_suicide_reason) != -1) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
-            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) commited suicide [${regmatch[3]}]\n`
+            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) commited suicide [${regmatch[3]}]`)
         }
         else if (regmatch.groups.reason.search(REGEX_recontained) != -1) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) has been recontained\n`
+            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) has been recontained`)
         }
         else if (regmatch.groups.reason.search(REGEX_Decayed) != -1) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}\n`
+            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}`)
         }
         else {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
             console.warn(`unknown kill reason "${regmatch.groups.reason}"`)
-            death_logs += `${regmatch.groups.victim} (${regmatch.groups.role}) [${regmatch[3]}]\n`
+            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) [${regmatch[3]}]`)
         }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -561,7 +617,7 @@ function ClassChangeHandle(new_lines, tr) {
     if (regmatch != null) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-        death_logs += `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]\n`
+        DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
@@ -576,7 +632,7 @@ function ClassChangeHandle(new_lines, tr) {
     //SPAWN WAVE 1/2
     regmatch = REGEX_Respawned_as.exec(new_lines[4])
     if (regmatch != null) {
-        death_logs+=`${regmatch[1]} spawned as ${regmatch[2]}\n`
+        DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
         if (!respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
             timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
@@ -607,12 +663,11 @@ function ClassChangeHandle(new_lines, tr) {
     // throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
 }
 
-
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
  */
-function LoggerHandle(new_lines, tr) {
+function LoggerHandle(new_lines, tr, timeline) {
     tr.style.backgroundColor = 'orange'
     if (new_lines[4].search(REGEX_round_start) != -1) {
         timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[1];
@@ -628,8 +683,10 @@ function LoggerHandle(new_lines, tr) {
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
+ * @param {Timeline} timeline 
+ * @param {HTMLSpanElement} admin_chat_log 
  */
-function AdministativeHandle(new_lines, tr) {
+function AdministativeHandle(new_lines, tr, timeline, admin_chat_log) {
     let regmatch = REGEX_admin_chat.exec(new_lines[4])
     if (regmatch != null) {
         const admin_name = window.document.createElement('span')
@@ -644,12 +701,23 @@ function AdministativeHandle(new_lines, tr) {
     }
     // throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
 }
+/**
+ * 
+ * @param {HTMLSpanElement} death_log 
+ * @param {string} death_log_text 
+ */
+function DeathLogAttacher(death_log, death_log_text) {
+    death_log.appendChild(window.document.createTextNode(death_log_text))
+    death_log.appendChild(window.document.createElement('br'))
+    return
+}
 
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
+ * @param {Timeline} timeline 
  */
-function WarheadHandle(new_lines, tr) {
+function WarheadHandle(new_lines, tr, timeline) {
     tr.style.backgroundColor = 'teal'
     if (new_lines[4].search(REGEX_warhead_countdown_start) != -1) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
@@ -670,8 +738,9 @@ function WarheadHandle(new_lines, tr) {
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
+ * @param {Timeline} timeline 
  */
-function NetworkingHandle(new_lines, tr) {
+function NetworkingHandle(new_lines, tr, timeline) {
     let regmatch = REGEX_networking_ignore.exec(new_lines[4])
     if (regmatch != null) {
         return
@@ -685,6 +754,7 @@ function NetworkingHandle(new_lines, tr) {
 
     regmatch = REGEX_preauth.exec(new_lines[4])
     if (regmatch != null) {
+        //TODO: ALT DETECTION
         IPaddress_assoc[regmatch.groups.IPaddress] = regmatch.groups.UserID
         return
     }
