@@ -29,6 +29,6 @@ const REGEX_log_split = /(.+?)\|(.+?)\|(.+?)\|(.+)/;
 
 //Networkig events
 const REGEX_networking_ignore = /(.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.|Banned player .*? tried to connect from endpoint .*? \[routed via .*?\]\.)|.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\./;
-const REGEX_disconnect = /.*? \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./;
+const REGEX_disconnect = /.* \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./;
 const REGEX_preauth = /^(?<UserID>.*?) preauthenticated from endpoint (?<IPaddress>\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3})(?::\d{0,5})?(?: \[routed via .*?\])?\.$/;
 const REGEX_IPaddress_split = /(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?/;

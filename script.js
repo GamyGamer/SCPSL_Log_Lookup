@@ -366,6 +366,7 @@ function MakeTimeLine() {
 
             article.appendChild(window.document.createElement('hr'))
             article.appendChild(admin_chat_log)
+            article_array[index] = article;
 
 
 
@@ -489,7 +490,7 @@ function MakeTimeLine() {
                     }
                 })
             }
-            article_array[index] = article;
+            
             if (progressbar_current == this.files.length) {
                 console.debug('ready to display')
                 for (const [index, article] of Object.entries(article_array)) {
