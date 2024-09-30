@@ -10,7 +10,9 @@ const REGEX_teamkill = /.+ \((.+)\), playing as (.+), has been teamkilled by .+ 
 const REGEX_warhead_death = /.+ \((.+)\), playing as (.+), has died. Specific death reason: Died to alpha warhead\./;
 const REGEX_class_change = /.+ \((.+)\) changed role of player .+ \((.+)\) to (.+)\./;
 
+//Administrative
 const REGEX_admin_chat = /\[(.+) \((.+)\)\] (.+)/;
+const REXEX_broadcast_text = /.+ \((?<UserID>.+)\) broadcast text ".+/;
 
 //Round events
 const REGEX_round_start = /Round has been started\./;

@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.2.0-indev"
-let indev = true
+let version = "0.2.0"
+let indev = false
 
 
 /*
@@ -324,7 +324,7 @@ function Selector() {
 }
 
 function MakeTimeLine() {
-    window.document.getElementById('progress_bar').style.display='block'
+    window.document.getElementById('progress_bar').style.display = 'block'
     window.document.getElementById('welcome').style.display = 'none'
     window.document.getElementById('log_select').innerHTML = ''
     window.document.getElementsByTagName('main')[0].innerHTML = ''
@@ -369,8 +369,10 @@ function MakeTimeLine() {
             article_array[index] = article;
 
 
-
-            let respawn_in_progress = false
+            let state = {
+                respawn_in_progress: false,
+                is_broadcasting: false,
+            }
             window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
             console.debug(index)
@@ -385,14 +387,24 @@ function MakeTimeLine() {
                     return;
                 }
                 new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+
                 if (new_lines == null) {
+                    if (state.is_broadcasting) {
+                        if (element == "") {
+                            element = "\n"
+                        }
+                        //Is linesplit happened before broadcast ended I have to edit last element
+                        //article.table.tbody.[last tr].[last td].textContent
+                        article.children[0].children[0].lastChild.lastChild.textContent += element
+                        return
+                    }
                     throw new Error(`Error splitting ${element}`);
                 }
                 if (new_lines.length != 5) {
                     throw new Error(`Error splitting ${element}`);
                 }
-
                 else {
+                    state.is_broadcasting = false;
                     for (let index = 0; index < new_lines.length; index++) {
                         new_lines[index] = new_lines[index].trim(); // Remove leading spaces
                     }
@@ -403,7 +415,7 @@ function MakeTimeLine() {
 
                     switch (new_lines[3]) {
                         case "Administrative":
-                            AdministativeHandle(new_lines, tr, timeline[index], admin_chat_log)
+                            AdministativeHandle(new_lines, tr, timeline[index], state, admin_chat_log)
                             img.src = "icons/shield.png"
                             break;
                         case "Logger":
@@ -411,7 +423,7 @@ function MakeTimeLine() {
                             img.src = "icons/log.png"
                             break;
                         case "Class change":
-                            ClassChangeHandle(new_lines, tr, timeline[index], respawn_in_progress, death_log)
+                            ClassChangeHandle(new_lines, tr, timeline[index], state, death_log)
                             img.src = "icons/swap.png"
                             break;
                         case "Warhead":
@@ -436,7 +448,10 @@ function MakeTimeLine() {
                         tr.appendChild(td)
                     }
                     if (new_lines[4].search(REGEX_scp_intentional_deaths) != -1) {
-                        tr.style.backgroundColor = 'cornflowerblue';
+                        if (tr.classList.contains("notable_death")) {
+                            tr.classList.remove("notable_death")
+                        }
+                        tr.classList.add("unusual_death")
                     }
 
                     //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
@@ -490,7 +505,7 @@ function MakeTimeLine() {
                     }
                 })
             }
-            
+
             if (progressbar_current == this.files.length) {
                 console.debug('ready to display')
                 for (const [index, article] of Object.entries(article_array)) {
@@ -520,11 +535,11 @@ document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
  * @param {any[]} new_lines
  * @param {HTMLTableRowElement} tr
  * @param {Timeline} timeline
- * @param {Boolean} respawn_in_progress
+ * @param {{ respawn_in_progress: boolean; is_broadcasting: boolean; }} state
  * @param {HTMLSpanElement} death_log 
  */
-function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_log) {
-    // tr.style.backgroundColor = 'red'
+function ClassChangeHandle(new_lines, tr, timeline, state, death_log) {
+    // tr.classList.add("notable_death")
 
     //HIGH PRIORITY
 
@@ -536,7 +551,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
 
-        tr.style.backgroundColor = 'red'
+        tr.classList.add("notable_death")
         return
     }
 
@@ -555,7 +570,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
         timeline.AddKiller(current_keyframe, regmatch[3])
 
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
-            tr.style.backgroundColor = 'red'
+            tr.classList.add("notable_death")
         }
         return;
     }
@@ -570,7 +585,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
-            tr.style.backgroundColor = 'red'
+            tr.classList.add("notable_death")
         }
         return;
     }
@@ -605,7 +620,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
-            tr.style.backgroundColor = 'red'
+            tr.classList.add("notable_death")
         }
         if (!captured) {
             throw new Error(`Single kill death was not captured "${regmatch.groups.reason}"`);
@@ -625,7 +640,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         timeline.AddKiller(current_keyframe, regmatch[3])
         if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
-            tr.style.backgroundColor = 'red'
+            tr.classList.add("notable_death")
         }
         return;
     }
@@ -634,10 +649,10 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
     regmatch = REGEX_Respawned_as.exec(new_lines[4])
     if (regmatch != null) {
         DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
-        if (!respawn_in_progress) { // Oznacz proces respawnu
+        if (!state.respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
             timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
-            respawn_in_progress = true
+            state.respawn_in_progress = true
         }
         else {
             timeline.AddPlayer(timeline.FindNewestEventType('spawn_wave'), regmatch[1], regmatch[2])
@@ -648,8 +663,8 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
     regmatch = REGEX_respawn_manager.exec(new_lines[4])
     if (regmatch != null) {
         timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
-        respawn_in_progress = false
-        tr.style.backgroundColor = 'red'
+        state.respawn_in_progress = false
+        tr.classList.add("notable_death")
         return;
     }
     //FORCE CLASS
@@ -669,7 +684,7 @@ function ClassChangeHandle(new_lines, tr, timeline, respawn_in_progress, death_l
  * @param {HTMLTableRowElement} tr
  */
 function LoggerHandle(new_lines, tr, timeline) {
-    tr.style.backgroundColor = 'orange'
+    tr.classList.add("logger_event")
     if (new_lines[4].search(REGEX_round_start) != -1) {
         timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[1];
         return
@@ -684,10 +699,11 @@ function LoggerHandle(new_lines, tr, timeline) {
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
- * @param {Timeline} timeline 
- * @param {HTMLSpanElement} admin_chat_log 
+ * @param {Timeline} timeline
+ * @param {HTMLSpanElement} admin_chat_log
+ * @param {{ respawn_in_progress: boolean; is_broadcasting: boolean; }} state
  */
-function AdministativeHandle(new_lines, tr, timeline, admin_chat_log) {
+function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
     let regmatch = REGEX_admin_chat.exec(new_lines[4])
     if (regmatch != null) {
         const admin_name = window.document.createElement('span')
@@ -700,6 +716,12 @@ function AdministativeHandle(new_lines, tr, timeline, admin_chat_log) {
         admin_chat_log.appendChild(document.createElement('br'))
         return
     }
+    regmatch = REXEX_broadcast_text.exec(new_lines[4])
+    if (regmatch != null) {
+        state.is_broadcasting = true
+        return
+    }
+
     // throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
 }
 /**
@@ -719,7 +741,7 @@ function DeathLogAttacher(death_log, death_log_text) {
  * @param {Timeline} timeline 
  */
 function WarheadHandle(new_lines, tr, timeline) {
-    tr.style.backgroundColor = 'teal'
+    tr.classList.add("warhead_event")
     if (new_lines[4].search(REGEX_warhead_countdown_start) != -1) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
         return

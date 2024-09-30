@@ -1,5 +1,9 @@
 :root {
     color-scheme: light dark;
+    --unusual_death: none;
+    --notable_death: none;
+    --warhead_event: none;
+    --logger_event: none;
 }
 
 * {
@@ -17,7 +21,8 @@ header {
     width: 100%;
     z-index: 10;
 }
-nav{
+
+nav {
     overflow: auto;
     white-space: nowrap;
 }
@@ -38,7 +43,8 @@ menu li.selected {
     border-top-style: outset;
 
 }
-menu li.selected:active{
+
+menu li.selected:active {
     border-style: inset;
 }
 
@@ -49,11 +55,45 @@ menu li:hover {
 menu li:active {
     border: 2px inset white;
 }
-article{
+
+article {
     display: none;
 }
-article.selected{
+
+article.selected {
     display: block;
+}
+
+div .unusual_death {
+    color: var(--unusual_death);
+}
+
+div .notable_death {
+    color: var(--notable_death);
+}
+
+div .warhead_event {
+    color: var(--warhead_event);
+}
+
+div .logger_event {
+    color: var(--logger_event);
+}
+
+main .unusual_death {
+    background-color: var(--unusual_death);
+}
+
+main .notable_death {
+    background-color: var(--notable_death);
+}
+
+main .warhead_event {
+    background-color: var(--warhead_event);
+}
+
+main .logger_event {
+    background-color: var(--logger_event);
 }
 
 

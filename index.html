@@ -7,7 +7,6 @@
     Import/Export: (ustawienia/adresy)
     Fancy menu (w nim ustawienia)
     Dynamiczna legenda (zobaczyć jak dynamicznie zmienić parametry CSS)
-    Privacy policy: (legal mumbo jumbo o zapisywaniu danych na urządzeniach)
     Remember Banned user for specific time period
 -->
 
@@ -33,13 +32,13 @@
         <nav id="log_select">
         </nav>
     </menu>
-    <div style="border: 4px dashed red; display: none;">
+    <div style="border: 4px dashed red; display: none;" id="settings">
         USTAWIENIA
         <form>
-            Kolor Śmierci:<input type="color" name="" id="notable_death" value="#FF0000"><br>
-            Kolor Nietypowych Śmierci:<input type="color" name="" id="unusual_death" value="#6495ed"><br>
-            Kolor Warhead:<input type="color" name="" id="warhead_event" value="#008080"><br> <br>
-            Kolor Loggera:<input type="color" name="" id="logger_event" value="#ffa500"><br>
+            Kolor Śmierci:<input type="color" name="notable_death" id="notable_death" value="#FF0000"><br>
+            Kolor Nietypowych Śmierci:<input type="color" name="unusual_death" id="unusual_death" value="#6495ed"><br>
+            Kolor Warhead:<input type="color" name="warhead_event" id="warhead_event" value="#008080"><br> <br>
+            Kolor Loggera:<input type="color" name="logger_event" id="logger_event" value="#ffa500"><br>
         </form>
     </div>
     <progress id="progress_bar" style="width: 100%; display: none;">test</progress>
@@ -52,12 +51,17 @@
         Do już prawie działających wartości można się dostać wpisując w konsole: <br>
         timeline.keyframe <br>
         <br>
+        <b style="background-image: linear-gradient(to right, red, blue); color: transparent; background-clip: text;">NOWOŚĆ:</b> Otworzenie wielu plików naraz
+        <br>
+        <br>
         LEGENDA: <br>
-        <span class="notable_death">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
-        <span class="unusual_death">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane
-        itp.)<br>
-        <span class="warhead_event">██</span>: Eventy Warhead <br>
-        <span class="logger_event">██</span>: Eventy Loggera <br>
+        <div>
+            <span class="notable_death">██</span>: Śmierć Cywila, SCP, od warhead'a oraz spawn wave <br>
+            <span class="unusual_death">██</span>: SCP Umarł w nietypowy sposób (tesla/nieznane
+            itp.)<br>
+            <span class="warhead_event">██</span>: Eventy Warhead <br>
+            <span class="logger_event">██</span>: Eventy Loggera <br>
+        </div>
         <br>
         <a href="https://github.com/GamyGamer/SCPSL_Log_Lookup">Link</a> do repozytorium z kodem gdzie można
         bezpośrednio pobrać
@@ -68,7 +72,8 @@
     <footer>
         <span id="version">version: UNKNOWN [script failed to load?]</span>
         <br>
-        <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a> <a href="privacy.html">PRIVACY POLICY</a>
+        <a href="attributions.html">ATTRIBUTIONS</a> <a href="changelog.html">CHANGELOG</a> <a
+            href="privacy.html">PRIVACY POLICY</a>
     </footer>
     <script src="script.js"></script>
     <script src="settings.js"></script>
