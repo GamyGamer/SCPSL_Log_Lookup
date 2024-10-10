@@ -1,37 +1,56 @@
 //@ts-check
 class Settings {
-    notable_death_color = new String().toString();
-    unusual_death_color = new String().toString();
-    warhead_color = new String().toString();
-    logger_color = new String().toString();
+    static notable_death_color = new String().toString();
+    static unusual_death_color = new String().toString();
+    static warhead_color = new String().toString();
+    static logger_color = new String().toString();
+    static dev_mode = new Boolean();
 
-    constructor(parameters) {
+    static LoadSettings() {
+        let parsed;
+        try {
+            parsed = JSON.parse(localStorage.getItem('settings'))
+            if (parsed == null) {
+                parsed = new Object();
+            }
 
-        this.LoadSettings()
-
-    }
-    LoadSettings() {
-        let parsed = JSON.parse(localStorage.getItem('settings'))
-        if (parsed == null) {
+        } catch (error) {
+            console.error(error)
             parsed = new Object();
+        } finally {
+            Settings.notable_death_color = parsed.notable_death_color ? parsed.notable_death_color : '#ff0000'
+            Settings.unusual_death_color = parsed.unusual_death_color ? parsed.unusual_death_color : '#6495ed'
+            Settings.warhead_color = parsed.warhead_color ? parsed.warhead_color : '#008080'
+            Settings.logger_color = parsed.warhead_color ? parsed.logger_color : '#ffa500'
+            Settings.dev_mode = parsed.dev_mode ? parsed.dev_mode : false
+            Settings.SaveSettings()
+            Settings.ApplySettings()
         }
-        this.notable_death_color = parsed.notable_death_color ? parsed.notable_death_color : '#ff0000'
-        this.unusual_death_color = parsed.unusual_death_color ? parsed.unusual_death_color : '#6495ed'
-        this.warhead_color = parsed.warhead_color ? parsed.warhead_color : '#008080'
-        this.logger_color = parsed.warhead_color ? parsed.logger_color : '#ffa500'
-        this.SaveSettings()
-        this.ApplySettings()
     }
-    SaveSettings() {
-        localStorage.setItem('settings', JSON.stringify(this))
-        this.ApplySettings()
+
+    static SaveSettings() {
+        localStorage.setItem('settings', JSON.stringify({
+            notable_death_color: Settings.notable_death_color,
+            unusual_death_color: Settings.unusual_death_color,
+            warhead_color: Settings.warhead_color,
+            logger_color: Settings.logger_color,
+            dev_mode: Settings.dev_mode,
+        }))
+        Settings.ApplySettings()
     }
-    ApplySettings() {
-        window.document.getElementsByTagName('body')[0].style.setProperty("--notable_death", this.notable_death_color)
-        window.document.getElementsByTagName('body')[0].style.setProperty("--unusual_death", this.unusual_death_color)
-        window.document.getElementsByTagName('body')[0].style.setProperty("--warhead_event", this.warhead_color)
-        window.document.getElementsByTagName('body')[0].style.setProperty("--logger_event", this.logger_color)
+    static ApplySettings() {
+        window.document.getElementsByTagName('body')[0].style.setProperty("--notable_death", Settings.notable_death_color)
+        window.document.getElementsByTagName('body')[0].style.setProperty("--unusual_death", Settings.unusual_death_color)
+        window.document.getElementsByTagName('body')[0].style.setProperty("--warhead_event", Settings.warhead_color)
+        window.document.getElementsByTagName('body')[0].style.setProperty("--logger_event", Settings.logger_color)
+        if (Settings.dev_mode) {
+            window.document.getElementById('dev_view').style.display = "block"
+            window.document.getElementById('dev_bar').style.display = "block"
+        }
+        else {
+            window.document.getElementById('dev_view').style.display = "none"
+            window.document.getElementById('dev_bar').style.display = "none"
+        }
     }
 }
-
-let settings = new Settings()
+Settings.LoadSettings()

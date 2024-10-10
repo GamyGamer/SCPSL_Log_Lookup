@@ -14,6 +14,7 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="icons/04a05d51c636d09507a1d5a7c34278f7.webp" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="roles.css">
     <title>SCP:SL TimeLine</title>
     <script src="regex_rules.js"></script>
     <script src="monit_users.js"></script>
@@ -25,6 +26,8 @@
             id="error_bar">WYSTĄPIŁ BŁĄD [ERROR CODE W KONSOLI]</div>
         <div style="width: 100%; background-color: orange; color: white; text-align: center; font-size: x-large; display: none;"
             id="warn_bar">WERSJA POGLĄDOWA</div>
+        <div style="width: 100%; background-color: purple; color: white; text-align: center; font-size: x-large; display: none;"
+            id="dev_bar">TRYB DEWELOPERSKI</div>
     </header>
     <menu>
         <input type="file" id="fileInput" accept=".txt" multiple>
@@ -32,14 +35,22 @@
         <nav id="log_select">
         </nav>
     </menu>
-    <div style="border: 4px dashed red; display: none;" id="settings">
-        USTAWIENIA
-        <form>
-            Kolor Śmierci:<input type="color" name="notable_death" id="notable_death" value="#FF0000"><br>
-            Kolor Nietypowych Śmierci:<input type="color" name="unusual_death" id="unusual_death" value="#6495ed"><br>
-            Kolor Warhead:<input type="color" name="warhead_event" id="warhead_event" value="#008080"><br> <br>
-            Kolor Loggera:<input type="color" name="logger_event" id="logger_event" value="#ffa500"><br>
-        </form>
+    <div style="border: 4px dashed red; display: none;" id="dev_view">
+        <div title="settings">
+            USTAWIENIA
+            <form>
+                Kolor Śmierci:<input type="color" name="notable_death" id="notable_death" value="#FF0000"><br>
+                Kolor Nietypowych Śmierci:<input type="color" name="unusual_death" id="unusual_death"
+                    value="#6495ed"><br>
+                Kolor Warhead:<input type="color" name="warhead_event" id="warhead_event" value="#008080"><br> <br>
+                Kolor Loggera:<input type="color" name="logger_event" id="logger_event" value="#ffa500"><br>
+                <button type="reset">RESET</button>
+            </form>
+        </div>
+        <hr>
+        <div title="">
+
+        </div>
     </div>
     <progress id="progress_bar" style="width: 100%; display: none;">test</progress>
     <div id="welcome">
@@ -51,7 +62,9 @@
         Do już prawie działających wartości można się dostać wpisując w konsole: <br>
         timeline.keyframe <br>
         <br>
-        <b style="background-image: linear-gradient(to right, red, blue); color: transparent; background-clip: text;">NOWOŚĆ:</b> Otworzenie wielu plików naraz
+        <b
+            style="background-image: linear-gradient(to right, red, blue); color: transparent; background-clip: text;">NOWOŚĆ:</b>
+        Otworzenie wielu plików naraz
         <br>
         <br>
         LEGENDA: <br>
@@ -77,6 +90,7 @@
     </footer>
     <script src="script.js"></script>
     <script src="settings.js"></script>
+    <script src="super_secret_settings.js"></script>
 </body>
 
 </html>
