@@ -300,7 +300,7 @@ let UserID_assoc = new Object();
 let IPaddress_assoc = new Object();
 const article_array = new Object();
 
-function Selector() {
+function FileSelector() {
     this.parentElement.childNodes.forEach(element => {
         if (element.getAttribute('class') != null) {
             element.removeAttribute('class')
@@ -331,7 +331,7 @@ function MakeTimeLine() {
     for (let index = 0; index < this.files.length; index++) {
         let li = window.document.createElement('li')
         // li.id=`file_selector_${index}` // 
-        li.addEventListener("click", Selector)
+        li.addEventListener("click", FileSelector)
         li.innerText = `${this.files[index].name}`
         if (index == 0) {
             li.className = 'selected'
