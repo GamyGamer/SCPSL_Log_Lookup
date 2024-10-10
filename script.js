@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.2.0"
-let indev = false
+let version = "0.3.0-indev"
+let indev = true
 
 
 /*
@@ -37,52 +37,16 @@ let indev = false
     -If someone is seen for the first time assume current role as their first role (unless respawn manager)
 
 */
-class Roles {
-    Aligments = {
+class Role {
+    static Aligments = {
         SCP: ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114"],
         Foundation: ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "Scientist"],
         Chaos: ["ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "ClassD"],
         Misc: ["Spectator", "Overwatch", "Filmmaker", "Tutorial"]
     }
-    Military = ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor"];
-    Civilian = ["Scientist", "ClassD"]
-    /**
-     * @param {string} Role
-     * @returns {boolean}
-     */
-    IsCivilian(Role) {
-        if (Role == undefined) {
-            throw new Error("Role is undefined");
-        }
-        let found = false
-        this.Civilian.forEach(element => {
-            if (element == Role) {
-                found = true
-            }
-        })
-        return found
-    }
-    /**
-     * @param {string} Role
-     * @returns {boolean}
-     */
-    IsSCP(Role) {
-        if (Role == undefined) {
-            throw new Error("Role is undefined");
-        }
-        let found = false
-        this.Aligments.SCP.forEach(element => {
-            if (element == Role) {
-                found = true
-            }
-        })
-        return found
-    }
-}
-
-class Timeline {
-    keyframe = new Array();
-    role_dictonary = {
+    static Military = ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor"];
+    static Civilian = ["Scientist", "ClassD"]
+    static role_dictonary = {
         "Scp173": "SCP-173",
         "Scp106": "SCP-106",
         "Scp049": "SCP-049",
@@ -100,13 +64,50 @@ class Timeline {
         "ChaosRifleman": "Chaos Insurgency Rifleman",
         "ChaosMarauder": "Chaos Insurgency Marauder",
         "ChaosRepressor": "Chaos Insurgency Repressor",
-        "Scientist": "",
+        "Scientist": "Scientist",
         "ClassD": "Class-D Personnel",
-        "Spectator": "",
-        "Overwatch": "",
-        "Filmmaker": "",
-        "Tutorial": "",
+        "Spectator": "Spectator",
+        "Overwatch": "Overwatch",
+        "Filmmaker": "Filmmaker",
+        "Tutorial": "Tutorial",
     }
+    static Order = ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114", "NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "Scientist", "ClassD", "Spectator", "Overwatch", "Filmmaker", "Tutorial"]
+    /**
+     * @param {string} Role
+     * @returns {boolean}
+     */
+    static IsCivilian(Role) {
+        if (Role == undefined) {
+            throw new Error("Role is undefined");
+        }
+        let found = false
+        this.Civilian.forEach(element => {
+            if (element == Role) {
+                found = true
+            }
+        })
+        return found
+    }
+    /**
+     * @param {string} Role
+     * @returns {boolean}
+     */
+    static IsSCP(Role) {
+        if (Role == undefined) {
+            throw new Error("Role is undefined");
+        }
+        let found = false
+        this.Aligments.SCP.forEach(element => {
+            if (element == Role) {
+                found = true
+            }
+        })
+        return found
+    }
+}
+
+class Timeline {
+    keyframe = new Array();
     constructor() {
         this.NewKeyFrame(null, 'round_start')
     }
@@ -116,23 +117,23 @@ class Timeline {
     }
     /**
      * Converts translated roles to internal
-     * @param {string} Role
+     * @param {string} role
      * @returns {string} 
      */
-    TranslateToInternal(Role) {
-        if (Role == undefined) {
+    TranslateToInternal(role) {
+        if (role == undefined) {
             throw new Error("Unable to translate undefined role")
         }
-        if (Role == "None") {
+        if (role == "None") {
             console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
             return "None"
         }
-        for (const [internal, translated] of Object.entries(this.role_dictonary)) {
-            if (Role == internal || Role == translated) {
+        for (const [internal, translated] of Object.entries(Role.role_dictonary)) {
+            if (role == internal || role == translated) {
                 return internal
             }
         }
-        throw new Error(`Role "${Role}" has no defined translation`)
+        throw new Error(`Role "${role}" has no defined translation`)
     }
     /**
      * Creates new keyframe with optional parameters
@@ -293,7 +294,6 @@ class Timeline {
 }
 
 let timeline = new Object();
-let Role = new Roles();
 let lines = new Array();
 let new_lines = new Array();
 let UserID_assoc = new Object();
