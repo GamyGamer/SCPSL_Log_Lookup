@@ -116,7 +116,7 @@ main .logger_event {
         background-color: beige !important;
     }
 
-    img {
+    td img {
         width: 40px;
         display: block;
     }
@@ -144,7 +144,7 @@ main .logger_event {
         background-color: gray !important;
     }
 
-    img {
+    td img {
         width: 40px;
         display: block;
         filter: invert();
