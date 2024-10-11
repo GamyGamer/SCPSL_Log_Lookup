@@ -71,7 +71,7 @@ class Role {
         "Filmmaker": "Filmmaker",
         "Tutorial": "Tutorial",
     }
-    static Order = ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114", "NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "Scientist", "ClassD", "Spectator", "Overwatch", "Filmmaker", "Tutorial"]
+    static Order = ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114", "NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "Scientist", "ClassD", "Spectator", "None", "Overwatch", "Filmmaker", "Tutorial"]
     /**
      * @param {string} Role
      * @returns {boolean}
@@ -321,6 +321,47 @@ function FileSelector() {
 
 
     //TODO: HIDE AND SELECT
+}
+window.document.getElementById('test').addEventListener('click', SelectPlayer)
+
+function CreateBadges() {
+    const spectator_viewer = window.document.getElementById('spectator_badges')
+    spectator_viewer.innerHTML = ''
+    //DOM CREATION
+    for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
+        const badge = window.document.createElement('div');
+        const image = window.document.createElement('img');
+        const nickname = window.document.createElement('span');
+        const role = window.document.createElement('span')
+
+
+        badge.classList.add('spectator_badge')
+        badge.classList.add(Current_Role)
+        badge.setAttribute('userid',UserID);
+        nickname.classList.add('nickname')
+        role.classList.add('role')
+
+        nickname.innerText = UserID_assoc[UserID]
+
+        badge.appendChild(image)
+        badge.appendChild(nickname)
+        badge.appendChild(role)
+        badge.addEventListener('click',SelectPlayer)
+        spectator_viewer.appendChild(badge)
+    }
+
+}
+
+function SelectPlayer() {
+    let userID = this.getAttribute('userid');
+    let username = UserID_assoc[userID];
+
+
+    window.document.getElementById('nickname').innerText=username;
+    window.document.getElementById('playerid').innerText='2';
+    window.document.getElementById('ipaddress')
+    window.document.getElementById('userid').innerText=userID;
+    window.document.getElementById('class').innerText=this.classList[1]
 }
 
 function MakeTimeLine() {

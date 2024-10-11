@@ -48,25 +48,24 @@
             </form>
         </div>
         <hr>
-        <div title="playerview">
-            <div style="width: 30%;">
-                <div class="spectator_badge">
-                    <img>
-                    <span class="nickname">GamyGamer</span>
-                    <span class="role"></span>
-                </div>
-                <div class="spectator_badge">
-                    <img>
-                    <span class="nickname">GamyGamer</span>
-                    <span class="role"></span>
-                </div>
-                <div class="spectator_badge">
+        <div class="playerview">
+            <div style="width: 30%; display: table-cell;" id="spectator_badges">
+                <div class="spectator_badge" UserID="76561198163699391@steam" id="test">
                     <img>
                     <span class="nickname">GamyGamer</span>
                     <span class="role"></span>
                 </div>
             </div>
-            <div style="width: 70%;">aaa</div>
+            <div style="width: 70%; display: table-cell; top: 50px; position: sticky;">
+                Nickname: <span id="nickname"></span><br>
+                Player ID: <span id="playerid"></span><br>
+                IP Address: <span id="ipaddress"></span><br>
+                User ID: <span id="userid"></span><br>
+                Server role: [TODO] <br>
+                Active flag(s): [TODO] <br>
+                Class: <span id="class"></span> <br>
+                Position: [Impossible]
+            </div>
         </div>
     </div>
     <progress id="progress_bar" style="width: 100%; display: none;">test</progress>
