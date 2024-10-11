@@ -12,6 +12,7 @@ div.spectator_badge {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    transition: 0.3s;
 
     img {
         float: left;
@@ -48,9 +49,24 @@ div.spectator_badge {
     }
 }
 
+div.spectator_badge:active:hover.selected{
+    background-color: rgb(37, 37, 37, 1);
+}
+
+div.spectator_badge:active:hover{
+    background-color: rgb(37, 37, 37, 0.9);
+}
+div.spectator_badge:hover{
+    background-color: rgb(37, 37, 37, 0.8);
+}
 div.spectator_badge.selected{
+    background-color: rgb(37, 37, 37, 0.7);
     border-right: 2px solid gray;
 }
+div.spectator_badge.selected:hover{
+    background-color: rgb(37, 37, 37, 0.8);
+}
+
 
 
 div.spectator_badge.ClassD {
