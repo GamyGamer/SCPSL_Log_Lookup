@@ -14,7 +14,12 @@ let changelog = {
     '0.1.3': `Dodanie legendy kolorów
     Wypisywanie błędów z wersji 0.1.1 do konsoli zamiast zatrzymywać instant`,
     '0.2.0': `Możliwość załadowania wielu plików naraz
-    Poprawne rozpatrowanie broadcastów jeśli z jakiegoś powodu w pliku znajduje się nowa linia`
+    Poprawne rozpatrowanie broadcastów jeśli z jakiegoś powodu w pliku znajduje się nowa linia`,
+    '0.3.0-indev': `Wykorzystanie ikon z gry do wyświetlania ról w stylu obserwatora (animacje wybierania)
+    Dodano tryb deweloperski, aby aktywować należy wprowadzić kombinację: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a', ' ']
+    Przeniesienie definicji tłumaczeń roli do klasy \`Role\`
+    Dodano tabelkę z informacjami o szkielecie
+    `
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

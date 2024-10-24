@@ -1,6 +1,6 @@
 //@ts-check
 let version = "0.3.0-indev"
-let indev = true
+let indev = false
 
 
 /*
@@ -107,6 +107,9 @@ class Role {
 }
 
 class Timeline {
+    /**
+     * @param {[{player}]} keyframe
+     */
     keyframe = new Array();
     constructor() {
         this.NewKeyFrame(null, 'round_start')
@@ -133,7 +136,9 @@ class Timeline {
                 return internal
             }
         }
-        throw new Error(`Role "${role}" has no defined translation`)
+        console.warn(`Role "${role}" has no defined translation`)
+        return "UnknownRole_ReportToLogParserProgrammer"
+        // throw new Error(`Role "${role}" has no defined translation`)
     }
     /**
      * Creates new keyframe with optional parameters
@@ -278,6 +283,23 @@ class Timeline {
 
     }
     /**
+     * 
+     * @param {string} role 
+     */
+    FindPlayerWithRole(role = undefined) {
+        if (role == undefined) {
+            throw new Error("Role is undefined");
+        }
+        for (const [playerID, playerRole] of Object.entries(this.keyframe[0].player)) {
+            if (playerRole == role) {
+                return playerID;
+            }
+        }
+        return null;
+
+
+    }
+    /**
     * W momencie otrzymania roli następuje wsteczna propagacja w osi czasu
     * @param {string} UserID 
     * @param {string} Role 
@@ -337,7 +359,7 @@ function CreateBadges() {
 
         badge.classList.add('spectator_badge')
         badge.classList.add(Current_Role)
-        badge.setAttribute('userid',UserID);
+        badge.setAttribute('userid', UserID);
         nickname.classList.add('nickname')
         role.classList.add('role')
 
@@ -346,7 +368,7 @@ function CreateBadges() {
         badge.appendChild(image)
         badge.appendChild(nickname)
         badge.appendChild(role)
-        badge.addEventListener('click',SelectPlayer)
+        badge.addEventListener('click', SelectPlayer)
         spectator_viewer.appendChild(badge)
     }
 
@@ -357,11 +379,11 @@ function SelectPlayer() {
     let username = UserID_assoc[userID];
 
 
-    window.document.getElementById('nickname').innerText=username;
-    window.document.getElementById('playerid').innerText='2';
+    window.document.getElementById('nickname').innerText = username;
+    window.document.getElementById('playerid').innerText = '2';
     window.document.getElementById('ipaddress')
-    window.document.getElementById('userid').innerText=userID;
-    window.document.getElementById('class').innerText=this.classList[1]
+    window.document.getElementById('userid').innerText = userID;
+    window.document.getElementById('class').innerText = this.classList[1]
 }
 
 function MakeTimeLine() {
@@ -393,13 +415,25 @@ function MakeTimeLine() {
         filereader.addEventListener('load', () => {
 
             // DOM CREATION
-            const article = window.document.createElement('article')
+            const article = window.document.createElement('article');
+
+            const table3114 = window.document.createElement('table');
+            // table3114.style.display='none'
+            const tbody3114 = window.document.createElement('tbody');
+            tbody3114.style.display = 'none'
+
             const table = window.document.createElement('table')
             const tbody = window.document.createElement('tbody')
             const death_log = window.document.createElement('span')
             const admin_chat_log = window.document.createElement('span')
 
             table.appendChild(tbody)
+
+            table3114.appendChild(tbody3114)
+            article.appendChild(table3114)
+            const th3114 = window.document.createElement('th')
+            th3114.colSpan = 2
+            tbody3114.appendChild(th3114)
 
             article.appendChild(table)
             article.appendChild(death_log)
@@ -413,6 +447,7 @@ function MakeTimeLine() {
             let state = {
                 respawn_in_progress: false,
                 is_broadcasting: false,
+                is_3114_in_game: false,
             }
             window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
@@ -464,7 +499,7 @@ function MakeTimeLine() {
                             img.src = "icons/log.png"
                             break;
                         case "Class change":
-                            ClassChangeHandle(new_lines, tr, timeline[index], state, death_log)
+                            ClassChangeHandle(new_lines, tr, timeline[index], state, death_log, tbody3114)
                             img.src = "icons/swap.png"
                             break;
                         case "Warhead":
@@ -576,10 +611,11 @@ document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
  * @param {any[]} new_lines
  * @param {HTMLTableRowElement} tr
  * @param {Timeline} timeline
- * @param {{ respawn_in_progress: boolean; is_broadcasting: boolean; }} state
- * @param {HTMLSpanElement} death_log 
+ * @param {HTMLSpanElement} death_log
+ * @param {HTMLTableSectionElement} tbody3114
+ * @param {{ respawn_in_progress: any; is_broadcasting?: boolean; is_3114_in_game?: boolean; }} state
  */
-function ClassChangeHandle(new_lines, tr, timeline, state, death_log) {
+function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114) {
     // tr.classList.add("notable_death")
 
     //HIGH PRIORITY
@@ -716,8 +752,50 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log) {
         return;
 
     }
+    regmatch = REGEX_3114_disguise_set.exec(new_lines[4])
+    if (regmatch != null) {
+        if (!state.is_3114_in_game) {
+            const Player3114 = timeline.FindPlayerWithRole("Scp3114")
+            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
+            tbody3114.style.display = 'inherit'
+            if (Player3114 != null) {
+                state.is_3114_in_game = true
+            }
+        }
+        console.log(tbody3114)
+        const tr = window.document.createElement('tr')
+        const td_time = window.document.createElement('td')
+        td_time.textContent = new_lines[1];
+        const td_text = window.document.createElement('td')
+        td_text.textContent = new_lines[4];
+        tr.appendChild(td_time)
+        tr.appendChild(td_text);
+        tbody3114.appendChild(tr)
+        return;
+    }
+    regmatch = REGEX_3114_disguise_drop.exec(new_lines[4])
+    if (regmatch != null) {
+        if (!state.is_3114_in_game) {
+            const Player3114 = timeline.FindPlayerWithRole("Scp3114")
+            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
+            tbody3114.style.display = 'inherit'
+            if (Player3114 != null) {
+                state.is_3114_in_game = true
+            }
+        }
+        const tr = window.document.createElement('tr')
+        const td_time = window.document.createElement('td')
+        td_time.textContent = new_lines[1];
+        const td_text = window.document.createElement('td')
+        td_text.textContent = new_lines[4];
+        tr.appendChild(td_time)
+        tr.appendChild(td_text);
+        tbody3114.appendChild(tr);
+        return;
+    }
+
     console.error(`Could not parse Change class event.: ${new_lines[4]}`)
-    // throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
+    throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
 }
 
 /**
