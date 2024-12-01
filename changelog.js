@@ -19,7 +19,8 @@ let changelog = {
     Dodano tryb deweloperski, aby aktywować należy wprowadzić kombinację: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a', ' ']
     Przeniesienie definicji tłumaczeń roli do klasy \`Role\`
     Dodano tabelkę z informacjami o szkielecie
-    `
+    `,
+    '0.3.1':`[HOTFIX] Wstępne wsparcie publicznej bety`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

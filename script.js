@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.3.0-indev"
+let version = "0.3.1"
 let indev = false
 
 
@@ -70,6 +70,7 @@ class Role {
         "Overwatch": "Overwatch",
         "Filmmaker": "Filmmaker",
         "Tutorial": "Tutorial",
+        "Destroyed": "Destroyed"
     }
     static Order = ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114", "NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "Scientist", "ClassD", "Spectator", "None", "Overwatch", "Filmmaker", "Tutorial"]
     /**
@@ -131,7 +132,11 @@ class Timeline {
             console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
             return "None"
         }
+        if (role == "Destroyed") { // TODO: Can cause issue at the end of the round in the back propagation stage
+            return "Spectator"
+        }
         for (const [internal, translated] of Object.entries(Role.role_dictonary)) {
+
             if (role == internal || role == translated) {
                 return internal
             }
@@ -495,6 +500,7 @@ function MakeTimeLine() {
                             img.src = "icons/shield.png"
                             break;
                         case "Logger":
+                        case "Game logic":
                             LoggerHandle(new_lines, tr, timeline[index])
                             img.src = "icons/log.png"
                             break;
@@ -902,6 +908,9 @@ function NetworkingHandle(new_lines, tr, timeline) {
     }
     regmatch = REGEX_disconnect.exec(new_lines[4])
     if (regmatch != null) {
+        if (regmatch.groups.role == "Destroyed") {
+            return;
+        }
         timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
         return;
     }

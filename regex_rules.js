@@ -5,7 +5,7 @@ const REGEX_ID_to_username = /Nickname of (.+) is now (.+)\./;
 const REGEX_Respawned_as = /Player .+ \((.+)\) respawned as (.+)./;
 const REGEX_single_kill = /.+ \((?<victim>.+)\), playing as (?<role>.+), has died. Specific death reason: (?<reason>.+)\./;
 const REGEX_suicide = /.+ \((.+)\), playing as (.+), has commited suicide. Specific death reason: (.+)\./;
-const REGEX_respawn_manager = /RespawnManager has successfully spawned (\d+) players as (.+)!/;
+const REGEX_respawn_manager = /(?:RespawnManager|WaveSpawner) has successfully spawned (\d+) players as (.+)!/;
 const REGEX_teamkill = /.+ \((.+)\), playing as (.+), has been teamkilled by .+ \((.+)\) playing as: (.+)\. Specific death reason: (.+)\./;
 const REGEX_warhead_death = /.+ \((.+)\), playing as (.+), has died. Specific death reason: Died to alpha warhead\./;
 const REGEX_class_change = /.+ \((.+)\) changed role of player .+ \((.+)\) to (.+)\./;
@@ -39,3 +39,7 @@ const REGEX_networking_ignore = /(.*? authenticated from endpoint .*?\. Player I
 const REGEX_disconnect = /.* \((?<user>.*?)\) disconnected from IP address .*?\. Last class: (?<role>.*?)\./;
 const REGEX_preauth = /^(?<UserID>.*?) preauthenticated from endpoint (?<IPaddress>\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3})(?::\d{0,5})?(?: \[routed via .*?\])?\.$/;
 const REGEX_IPaddress_split = /(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?/;
+
+//Door events
+
+//Throwable events
