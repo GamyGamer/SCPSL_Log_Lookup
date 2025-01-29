@@ -38,14 +38,17 @@
     <div style="border: 4px dashed red; display: none;" id="dev_view">
         <div title="settings">
             USTAWIENIA
-            <form>
+            <form id="settings">
                 Kolor Śmierci:<input type="color" name="notable_death" id="notable_death" value="#FF0000"><br>
                 Kolor Nietypowych Śmierci:<input type="color" name="unusual_death" id="unusual_death"
                     value="#6495ed"><br>
                 Kolor Warhead:<input type="color" name="warhead_event" id="warhead_event" value="#008080"><br> <br>
                 Kolor Loggera:<input type="color" name="logger_event" id="logger_event" value="#ffa500"><br>
+                <input type="checkbox" name="alert_mode">Alert mode <br>
+
                 <button type="reset">RESET</button>
                 <button type="button" onclick="CreateBadges()">Render Player Badges</button>
+                <button type="button" onclick="Settings.RefreshSettings()">Update Settings</button>
             </form>
         </div>
         <hr>
@@ -57,15 +60,15 @@
                     <span class="role"></span>
                 </div>
             </div>
-            <div style="width: 70%; display: table-cell; top: 50px; position: sticky;">
-                Nickname: <span id="nickname"></span><br>
-                Player ID: <span id="playerid"></span><br>
-                IP Address: <span id="ipaddress"></span><br>
-                User ID: <span id="userid"></span><br>
-                Server role: [TODO] <br>
-                Active flag(s): [TODO] <br>
-                Class: <span id="class"></span> <br>
-                Position: [Impossible]
+            <div style="width: 70%; display: table-cell; top: 50px; position: sticky;" id="userinfo">
+                Nickname: <span name="nickname"></span><br>
+                Player ID: <span name="playerid"></span><br>
+                IP Address: <span name="ipaddress"></span><br>
+                User ID: <span name="userid"></span><br>
+                Server role: <span name="server_role">[TODO]</span><br>
+                Active flag(s): <span name="active_flags">[TODO]</span><br>
+                Class: <span name="class"></span> <br>
+                Position: <span name="position">[Impossible]</span>
             </div>
         </div>
     </div>
