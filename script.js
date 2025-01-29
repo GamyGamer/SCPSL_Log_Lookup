@@ -383,12 +383,11 @@ function SelectPlayer() {
     let userID = this.getAttribute('userid');
     let username = UserID_assoc[userID];
 
-
-    window.document.getElementById('nickname').innerText = username;
-    window.document.getElementById('playerid').innerText = '2';
-    window.document.getElementById('ipaddress')
-    window.document.getElementById('userid').innerText = userID;
-    window.document.getElementById('class').innerText = this.classList[1]
+    window.document.getElementById('userinfo').children['nickname'].innerText = username;
+    window.document.getElementById('userinfo').children['playerid'].innerText = '2';
+    window.document.getElementById('userinfo').children['ipaddress']
+    window.document.getElementById('userinfo').children['userid'].innerText = userID;
+    window.document.getElementById('userinfo').children['class'].innerText = this.classList[1]
 }
 
 function MakeTimeLine() {
@@ -396,7 +395,7 @@ function MakeTimeLine() {
     window.document.getElementById('welcome').style.display = 'none'
     window.document.getElementById('log_select').innerHTML = ''
     window.document.getElementsByTagName('main')[0].innerHTML = ''
-    for (let index = 0; index < this.files.length; index++) {
+    for (let index = 0; index < this.files.length; index++) { // Generate file selector
         let li = window.document.createElement('li')
         // li.id=`file_selector_${index}` // 
         li.addEventListener("click", FileSelector)
@@ -417,7 +416,7 @@ function MakeTimeLine() {
     for (const [index, file] of Object.entries(this.files)) {
         console.log(`${index}: ${file}`)
         let filereader = new FileReader();
-        filereader.addEventListener('load', () => {
+        filereader.addEventListener('load', () => { //WARNING: This is done in async way, note possible race conditions
 
             // DOM CREATION
             const article = window.document.createElement('article');
@@ -449,7 +448,7 @@ function MakeTimeLine() {
             article_array[index] = article;
 
 
-            let state = {
+            let state = { //TOFIX: somehow state can 'leak' into other files, issue found by getting an error in broadcast handler when no broadcast was present in specific file and yet it was marked
                 respawn_in_progress: false,
                 is_broadcasting: false,
                 is_3114_in_game: false,
@@ -551,44 +550,55 @@ function MakeTimeLine() {
                 admin_chat_log.appendChild(window.document.createElement('hr'))
             }
 
-            if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
-                /*
-                If you want to use this functionality type in console:
-                let monitored_users = new Array()
-                monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
-                */
-                return;
-            }
-            for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
-                monitored_users.UserID.forEach(element => {
-                    if (element == userID) {
-                        alert(`Monitored user ${Nickname} (${userID}) was found`)
-                    }
-                })
-            }
-            for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
-                monitored_users.IPaddress.forEach(element => {
-                    let DatabaseIP = REGEX_IPaddress_split.exec(element)
-                    let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
-                    if (DatabaseIP != null && PlayerIP != null) {
-                        let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
-                        let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
-                        if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
-                            player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
-                            db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
-
-                        }
-                        if (db_IP == player_IP) {
-                            alert(`Monitored user ${UserID_assoc[userID]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`)
-                        }
-                    }
-                    else {
-                        throw new Error(`Unable to split network address ${element}`);
-                    }
-                })
-            }
 
             if (progressbar_current == this.files.length) {
+                if (Settings.alert_mode) {
+                    if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
+                        /*
+                        If you want to use this functionality type in console:
+                        let monitored_users = new Array()
+                        monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
+                        */
+                        return;
+                    }
+                    for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
+                        monitored_users.UserID.forEach(element => {
+                            if (element == userID) {
+                                alert(`Monitored user ${Nickname} (${userID}) was found`)
+                            }
+                        })
+                    }
+                    for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
+                        monitored_users.IPaddress.forEach(element => {
+                            let DatabaseIP = REGEX_IPaddress_split.exec(element)
+                            let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
+                            if (DatabaseIP != null && PlayerIP != null) {
+                                let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
+                                let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
+                                if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
+                                    player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+                                    db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+
+                                }
+                                if (db_IP == player_IP) {
+                                    for (let index = 0; index < userID.length; index++) {
+                                        const element = userID[index];
+                                        if (UserID_assoc[element] != undefined) {
+                                            alert(`Monitored user ${UserID_assoc[element]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`) //TOFIX
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                throw new Error(`Unable to split network address ${element}`);
+                            }
+                        })
+                        if (userID.length > 1) {
+                            alert(`Multiple accounts detected from IP ${IPaddress}: ${userID}`)
+                        }
+                    }
+                }
                 console.debug('ready to display')
                 for (const [index, article] of Object.entries(article_array)) {
                     if (Number(index) == 0) {
@@ -903,7 +913,17 @@ function NetworkingHandle(new_lines, tr, timeline) {
     regmatch = REGEX_preauth.exec(new_lines[4])
     if (regmatch != null) {
         //TODO: ALT DETECTION
-        IPaddress_assoc[regmatch.groups.IPaddress] = regmatch.groups.UserID
+        if (IPaddress_assoc[regmatch.groups.IPaddress] === undefined) {
+            IPaddress_assoc[regmatch.groups.IPaddress] = new Array()
+        }
+        for (let index = 0; index < IPaddress_assoc[regmatch.groups.IPaddress].length; index++) {
+            const element = IPaddress_assoc[regmatch.groups.IPaddress][index];
+            if (element == regmatch.groups.UserID) {
+                return // If user already exists, do not append
+            }
+        }
+
+        IPaddress_assoc[regmatch.groups.IPaddress].push(regmatch.groups.UserID)
         return
     }
     regmatch = REGEX_disconnect.exec(new_lines[4])

@@ -5,8 +5,9 @@ class Settings {
     static warhead_color = new String().toString();
     static logger_color = new String().toString();
     static dev_mode = new Boolean();
+    static alert_mode = new Boolean()
 
-    static LoadSettings() {
+    static LoadSettings() { //Loads settings from localstorage
         let parsed;
         try {
             parsed = JSON.parse(localStorage.getItem('settings'))
@@ -23,26 +24,29 @@ class Settings {
             Settings.warhead_color = parsed.warhead_color ? parsed.warhead_color : '#008080'
             Settings.logger_color = parsed.warhead_color ? parsed.logger_color : '#ffa500'
             Settings.dev_mode = parsed.dev_mode ? parsed.dev_mode : false
-            Settings.SaveSettings()
-            Settings.ApplySettings()
+            Settings.alert_mode = parsed.alert_mode ? parsed.alert_mode : false
+            // Settings.SaveSettings()
+            // Settings.ApplySettings()
         }
     }
 
-    static SaveSettings() {
+    static SaveSettings() { // Saves current settings to localstorage
         localStorage.setItem('settings', JSON.stringify({
             notable_death_color: Settings.notable_death_color,
             unusual_death_color: Settings.unusual_death_color,
             warhead_color: Settings.warhead_color,
             logger_color: Settings.logger_color,
             dev_mode: Settings.dev_mode,
+            alert_mode: window.document.getElementById('settings')['alert_mode'].checked
         }))
-        Settings.ApplySettings()
     }
-    static ApplySettings() {
+    static ApplySettings() { // Sets main page to correct configuration from loaded settings
         window.document.getElementsByTagName('body')[0].style.setProperty("--notable_death", Settings.notable_death_color)
         window.document.getElementsByTagName('body')[0].style.setProperty("--unusual_death", Settings.unusual_death_color)
         window.document.getElementsByTagName('body')[0].style.setProperty("--warhead_event", Settings.warhead_color)
         window.document.getElementsByTagName('body')[0].style.setProperty("--logger_event", Settings.logger_color)
+        window.document.getElementById('settings')['alert_mode'].checked = Settings.alert_mode
+        
         if (Settings.dev_mode) {
             window.document.getElementById('dev_view').style.display = "block"
             window.document.getElementById('dev_bar').style.display = "block"
@@ -51,6 +55,14 @@ class Settings {
             window.document.getElementById('dev_view').style.display = "none"
             window.document.getElementById('dev_bar').style.display = "none"
         }
+
+    }
+    static RefreshSettings(){
+        Settings.alert_mode = window.document.getElementById('settings')['alert_mode'].checked ? true : false
+        Settings.ApplySettings()
+        Settings.SaveSettings()
     }
 }
+
 Settings.LoadSettings()
+Settings.ApplySettings()
