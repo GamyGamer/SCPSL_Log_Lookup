@@ -1,3 +1,4 @@
+//@ts-check
 let key_combo = 0
 let key_combo_sequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a', ' ']
 
@@ -16,7 +17,7 @@ document.addEventListener('keydown', (e) => {
         else {
             Settings.dev_mode = true
         }
-        Settings.SaveSettings()
+        Settings.RefreshSettings()
         console.log('sequence is correct')
     }
 })

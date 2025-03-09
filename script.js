@@ -450,8 +450,9 @@ function MakeTimeLine() {
 
             let state = { //TOFIX: somehow state can 'leak' into other files, issue found by getting an error in broadcast handler when no broadcast was present in specific file and yet it was marked
                 respawn_in_progress: false,
-                is_broadcasting: false,
+                broadcast: false,
                 is_3114_in_game: false,
+                admin_chat: false,
             }
             window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
@@ -469,13 +470,21 @@ function MakeTimeLine() {
                 new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
 
                 if (new_lines == null) {
-                    if (state.is_broadcasting) {
-                        if (element == "") {
-                            element = "\n"
-                        }
-                        //Is linesplit happened before broadcast ended I have to edit last element
+                    console.log(index)
+                    console.log(admin_chat_log)
+                    if (element == "") {//If linesplit happened before message ended I have to edit last element
+                        element = "\n"
+                    }
+                    if (state.broadcast) {
+
                         //article.table.tbody.[last tr].[last td].textContent
-                        article.children[0].children[0].lastChild.lastChild.textContent += element
+                        article.children[1].children[0].lastChild.lastChild.textContent += element
+                        return
+                    }
+                    if (state.admin_chat) {
+                        article.children[1].children[0].lastChild.lastChild.textContent += element
+                        admin_chat_log.appendChild(window.document.createTextNode(`${element}`))
+                        admin_chat_log.appendChild(document.createElement('br'))
                         return
                     }
                     throw new Error(`Error splitting ${element}`);
@@ -484,7 +493,8 @@ function MakeTimeLine() {
                     throw new Error(`Error splitting ${element}`);
                 }
                 else {
-                    state.is_broadcasting = false;
+                    state.broadcast = false;
+                    state.admin_chat = false;
                     for (let index = 0; index < new_lines.length; index++) {
                         new_lines[index] = new_lines[index].trim(); // Remove leading spaces
                     }
@@ -836,7 +846,7 @@ function LoggerHandle(new_lines, tr, timeline) {
  * @param {HTMLTableRowElement} tr
  * @param {Timeline} timeline
  * @param {HTMLSpanElement} admin_chat_log
- * @param {{ respawn_in_progress: boolean; is_broadcasting: boolean; }} state
+ * @param {{ respawn_in_progress: boolean; broadcast: boolean; admin_chat:boolean }} state
  */
 function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
     let regmatch = REGEX_admin_chat.exec(new_lines[4])
@@ -849,11 +859,12 @@ function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
         admin_chat_log.appendChild(admin_name)
         admin_chat_log.appendChild(admin_message)
         admin_chat_log.appendChild(document.createElement('br'))
+        state.admin_chat = true
         return
     }
     regmatch = REXEX_broadcast_text.exec(new_lines[4])
     if (regmatch != null) {
-        state.is_broadcasting = true
+        state.broadcast = true
         return
     }
 

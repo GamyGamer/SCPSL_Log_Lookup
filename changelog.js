@@ -1,3 +1,4 @@
+//@ts-check
 window.document.getElementById('output').innerText = ''
 let changelog = {
     '0.0.1': `Program został publicznie udostępniony`,
@@ -20,7 +21,8 @@ let changelog = {
     Przeniesienie definicji tłumaczeń roli do klasy \`Role\`
     Dodano tabelkę z informacjami o szkielecie
     `,
-    '0.3.1':`[HOTFIX] Wstępne wsparcie publicznej bety`
+    '0.3.1':`[HOTFIX] Wstępne wsparcie publicznej bety`,
+    '0.3.2':`Naprawiono błąd wywalający cały program jeśli znajdowała się pusta linijka w pliku (admin chat / broadcast)`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

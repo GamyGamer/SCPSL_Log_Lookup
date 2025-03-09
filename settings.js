@@ -37,7 +37,7 @@ class Settings {
             warhead_color: Settings.warhead_color,
             logger_color: Settings.logger_color,
             dev_mode: Settings.dev_mode,
-            alert_mode: window.document.getElementById('settings')['alert_mode'].checked
+            alert_mode: Settings.alert_mode
         }))
     }
     static ApplySettings() { // Sets main page to correct configuration from loaded settings

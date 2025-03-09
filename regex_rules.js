@@ -1,3 +1,4 @@
+//@ts-check
 //Class changes
 const REGEX_scp_intentional_deaths = /playing as SCP.* (Unknown cause of death|Crushed|Tesla)\./;
 const REGEX_direct_kill = /.+ \((.+)\), playing as (.+), has been killed by .+ \((.+)\) playing as: (.+)\. Specific death reason: (.+)\./;
