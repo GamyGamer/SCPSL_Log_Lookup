@@ -639,7 +639,7 @@ document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
  * @param {Timeline} timeline
  * @param {HTMLSpanElement} death_log
  * @param {HTMLTableSectionElement} tbody3114
- * @param {{ respawn_in_progress: any; is_broadcasting?: boolean; is_3114_in_game?: boolean; }} state
+ * @param {{ respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }} state
  */
 function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114) {
     // tr.classList.add("notable_death")
