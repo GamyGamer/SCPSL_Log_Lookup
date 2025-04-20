@@ -5,7 +5,8 @@ class Settings {
     static warhead_color = new String().toString();
     static logger_color = new String().toString();
     static dev_mode = new Boolean();
-    static alert_mode = new Boolean()
+    static alert_mode = new Boolean();
+    static strict_mode = new Boolean();
 
     static LoadSettings() { //Loads settings from localstorage
         let parsed;
@@ -25,6 +26,7 @@ class Settings {
             Settings.logger_color = parsed.warhead_color ? parsed.logger_color : '#ffa500'
             Settings.dev_mode = parsed.dev_mode ? parsed.dev_mode : false
             Settings.alert_mode = parsed.alert_mode ? parsed.alert_mode : false
+            Settings.strict_mode = parsed.strict_mode ? parsed.strict_mode : false
             // Settings.SaveSettings()
             // Settings.ApplySettings()
         }
@@ -37,7 +39,8 @@ class Settings {
             warhead_color: Settings.warhead_color,
             logger_color: Settings.logger_color,
             dev_mode: Settings.dev_mode,
-            alert_mode: Settings.alert_mode
+            alert_mode: Settings.alert_mode,
+            strict_mode: Settings.strict_mode
         }))
     }
     static ApplySettings() { // Sets main page to correct configuration from loaded settings
@@ -59,6 +62,7 @@ class Settings {
     }
     static RefreshSettings(){
         Settings.alert_mode = window.document.getElementById('settings')['alert_mode'].checked ? true : false
+        Settings.strict_mode = window.document.getElementById('settings')['strict_mode'].checked ? true : false
         Settings.ApplySettings()
         Settings.SaveSettings()
     }

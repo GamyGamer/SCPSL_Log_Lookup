@@ -141,7 +141,12 @@ class Timeline {
                 return internal
             }
         }
-        console.warn(`Role "${role}" has no defined translation`)
+        if (Settings.strict_mode) {
+            throw new Error(`Role "${role}" has no defined translation`)
+        }
+        else {
+            console.warn(`Role "${role}" has no defined translation`)
+        }
         return "UnknownRole_ReportToLogParserProgrammer"
         // throw new Error(`Role "${role}" has no defined translation`)
     }
@@ -819,9 +824,12 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         tbody3114.appendChild(tr);
         return;
     }
-
-    console.error(`Could not parse Change class event.: ${new_lines[4]}`)
-    throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
+    if (Settings.strict_mode) {
+        throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
+    }
+    else {
+        console.warn(`Could not parse Change class event.: ${new_lines[4]}`)
+    }
 }
 
 /**
@@ -838,7 +846,12 @@ function LoggerHandle(new_lines, tr, timeline) {
         timeline.NewKeyFrame(new_lines[1], 'round_finish')
         return
     }
-    //throw new Error(`Could not parse Logger event.: ${new_lines[4]}`)
+    if (Settings.strict_mode) {
+        throw new Error(`Could not parse Logger event.: ${new_lines[4]}`)
+    }
+    else {
+        console.warn(`Could not parse Logger event.: ${new_lines[4]}`)
+    }
 }
 
 /**
@@ -867,8 +880,13 @@ function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
         state.broadcast = true
         return
     }
+    if (Settings.strict_mode) {
+        throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
+    }
+    else {
+        console.warn(`Could not parse Administrative event.: ${new_lines[4]}`)
+    }
 
-    // throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
 }
 /**
  * 
@@ -900,8 +918,12 @@ function WarheadHandle(new_lines, tr, timeline) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_detonated')
         return
     }
-
-    //throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
+    if (Settings.strict_mode) {
+        throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
+    }
+    else {
+        console.warn(`Could not parse Warhead event.: ${new_lines[4]}`)
+    }
 }
 
 /**
@@ -945,5 +967,10 @@ function NetworkingHandle(new_lines, tr, timeline) {
         timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
         return;
     }
-    throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
+    if (Settings.strict_mode) {
+        throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
+    }
+    else {
+        console.warn(`Could not parse Networking event.: ${new_lines[4]}`)
+    }
 }
