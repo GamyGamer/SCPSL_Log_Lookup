@@ -9,6 +9,7 @@ let indev = false
     Autor: GamyGamer (306161751077158933)
 
     TODO:
+        - Przenieść state do klasy Timeline
         - Utworzenie osi czasu z której można łatwo podejrzeć kto jest jaką rolą w danym okresie czasu, może pokoloruj oś podczas detonacji, markery spawnmanager
         - Podświetl wszystkie linijki z danym ID po kliknięciu na linijkę
     TOFIX:
@@ -112,12 +113,18 @@ class Timeline {
      * @param {[{player}]} keyframe
      */
     keyframe = new Array();
+    state = {
+        respawn_in_progress: false,
+        multiline_message: false
+    }
     constructor() {
         this.NewKeyFrame(null, 'round_start')
     }
     Clear() {
         this.keyframe = new Array();
         this.NewKeyFrame(null, 'round_start')
+        this.state.multiline_message = false
+        this.state.respawn_in_progress = false
     }
     /**
      * Converts translated roles to internal
@@ -129,7 +136,7 @@ class Timeline {
             throw new Error("Unable to translate undefined role")
         }
         if (role == "None") {
-            console.log("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
+            console.warn("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
             return "None"
         }
         if (role == "Destroyed") { // TODO: Can cause issue at the end of the round in the back propagation stage
@@ -326,8 +333,6 @@ class Timeline {
 }
 
 let timeline = new Object();
-let lines = new Array();
-let new_lines = new Array();
 let UserID_assoc = new Object();
 let IPaddress_assoc = new Object();
 const article_array = new Object();
@@ -459,6 +464,11 @@ function MakeTimeLine() {
                 is_3114_in_game: false,
                 admin_chat: false,
             }
+            let lines = new Array();
+            /**
+             * @type {RegExpExecArray}
+             */
+            let log_line;
             window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
             console.debug(index)
@@ -472,9 +482,8 @@ function MakeTimeLine() {
                 if (element == "") {
                     return;
                 }
-                new_lines = REGEX_log_split.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
-
-                if (new_lines == null) {
+                log_line = SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+                if (log_line == null) {
                     console.log(index)
                     console.log(admin_chat_log)
                     if (element == "") {//If linesplit happened before message ended I have to edit last element
@@ -494,71 +503,77 @@ function MakeTimeLine() {
                     }
                     throw new Error(`Error splitting ${element}`);
                 }
-                if (new_lines.length != 5) {
+                if (log_line.length != 5) {
                     throw new Error(`Error splitting ${element}`);
                 }
-                else {
-                    state.broadcast = false;
-                    state.admin_chat = false;
-                    for (let index = 0; index < new_lines.length; index++) {
-                        new_lines[index] = new_lines[index].trim(); // Remove leading spaces
-                    }
-                    const tr = document.createElement('tr');
-                    const td = document.createElement('td');
-                    const img = document.createElement('img');
 
+                state.broadcast = false; // move to timeline
+                state.admin_chat = false;
 
-                    switch (new_lines[3]) {
-                        case "Administrative":
-                            AdministativeHandle(new_lines, tr, timeline[index], state, admin_chat_log)
-                            img.src = "icons/shield.png"
-                            break;
-                        case "Logger":
-                        case "Game logic":
-                            LoggerHandle(new_lines, tr, timeline[index])
-                            img.src = "icons/log.png"
-                            break;
-                        case "Class change":
-                            ClassChangeHandle(new_lines, tr, timeline[index], state, death_log, tbody3114)
-                            img.src = "icons/swap.png"
-                            break;
-                        case "Warhead":
-                            WarheadHandle(new_lines, tr, timeline[index])
-                            img.src = "icons/nuclear-explosion.png"
-                            break;
-                        case "Networking":
-                            NetworkingHandle(new_lines, tr, timeline[index])
-                            img.src = "icons/na.png"
-                            break;
-
-                        default:
-                            img.src = "icons/na.png"
-                            break;
-                    }
-
-                    td.appendChild(img)
-                    tr.appendChild(td)
-                    for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
-                        const td = document.createElement('td');
-                        td.textContent = new_lines[index]
-                        tr.appendChild(td)
-                    }
-                    if (new_lines[4].search(REGEX_scp_intentional_deaths) != -1) {
-                        if (tr.classList.contains("notable_death")) {
-                            tr.classList.remove("notable_death")
-                        }
-                        tr.classList.add("unusual_death")
-                    }
-
-                    //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
-                    // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
-                    // if (regmatch != null) {
-                    //     UserID_assoc[regmatch[1]] = regmatch[2]
-                    // }
-
-                    tbody.appendChild(tr)
+                {
+                    log_line.groups.Time = log_line.groups.Time.trim()
+                    log_line.groups.Type = log_line.groups.Type.trim()
+                    log_line.groups.Module = log_line.groups.Module.trim()
+                    log_line.groups.Message = log_line.groups.Message.trim()
                 }
 
+                for (let index = 0; index < log_line.length; index++) {
+                    log_line[index] = log_line[index].trim(); // Remove leading spaces
+                }
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                const img = document.createElement('img');
+
+
+                switch (log_line.groups.Module) {
+                    case "Administrative":
+                        AdministativeHandle(log_line, tr, timeline[index], state, admin_chat_log)
+                        img.src = "icons/shield.png"
+                        break;
+                    case "Logger":
+                    case "Game logic":
+                        LoggerHandle(log_line, tr, timeline[index])
+                        img.src = "icons/log.png"
+                        break;
+                    case "Class change":
+                        ClassChangeHandle(log_line, tr, timeline[index], state, death_log, tbody3114)
+                        img.src = "icons/swap.png"
+                        break;
+                    case "Warhead":
+                        WarheadHandle(log_line, tr, timeline[index])
+                        img.src = "icons/nuclear-explosion.png"
+                        break;
+                    case "Networking":
+                        NetworkingHandle(log_line, tr, timeline[index])
+                        img.src = "icons/na.png"
+                        break;
+                    default:
+                        console.warn(`${log_line.groups.Module}: ${log_line.groups.Message}`);
+                        img.src = "icons/na.png"
+                        break;
+                }
+
+                td.appendChild(img)
+                tr.appendChild(td)
+                for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
+                    const td = document.createElement('td');
+                    td.textContent = log_line[index]
+                    tr.appendChild(td)
+                }
+                if (SLRegExp.DeathReason.SCPIntentional.test(log_line.groups.Message)) {
+                    if (tr.classList.contains("notable_death")) {
+                        tr.classList.remove("notable_death")
+                    }
+                    tr.classList.add("unusual_death")
+                }
+
+                //TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
+                // let regmatch = REGEX_ID_to_username.exec(new_lines[4])
+                // if (regmatch != null) {
+                //     UserID_assoc[regmatch[1]] = regmatch[2]
+                // }
+
+                tbody.appendChild(tr)
 
             });
             if (!(admin_chat_log.innerText == '')) {
@@ -585,8 +600,8 @@ function MakeTimeLine() {
                     }
                     for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
                         monitored_users.IPaddress.forEach(element => {
-                            let DatabaseIP = REGEX_IPaddress_split.exec(element)
-                            let PlayerIP = REGEX_IPaddress_split.exec(IPaddress)
+                            let DatabaseIP = SLRegExp.SplitIP.exec(element)
+                            let PlayerIP = SLRegExp.SplitIP.exec(IPaddress)
                             if (DatabaseIP != null && PlayerIP != null) {
                                 let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
                                 let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
@@ -651,9 +666,13 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
 
     //HIGH PRIORITY
 
+
+    /**
+     * @type {RegExpExecArray}
+     */
     //DETONACJA WARHEAD
-    let regmatch = REGEX_warhead_death.exec(new_lines[4])
-    if (regmatch != null) {
+    let regmatch
+    if (regmatch = SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -666,8 +685,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     //LOW PRIORITY
 
     //KTOŚ KOGOŚ ZABIŁ
-    regmatch = REGEX_direct_kill.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -684,8 +702,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 
     //SAMOBÓJ
-    regmatch = REGEX_suicide.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
@@ -698,31 +715,31 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         return;
     }
     //ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
-    regmatch = REGEX_single_kill.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
+        console.debug(regmatch)
         let captured = false
         let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
-        if (regmatch.groups.reason.search(REGEX_suicide_reason) != -1) {
+        if (SLRegExp.DeathReason.Suicide.test(regmatch.groups.Reason)) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
-            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) commited suicide [${regmatch[3]}]`)
+            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) commited suicide [${regmatch[3]}]`)
         }
-        else if (regmatch.groups.reason.search(REGEX_recontained) != -1) {
+        else if (SLRegExp.DeathReason.Recontained.test(regmatch.groups.Reason)) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) has been recontained`)
+            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) has been recontained`)
         }
-        else if (regmatch.groups.reason.search(REGEX_Decayed) != -1) {
+        else if (SLRegExp.DeathReason.Decayed.test(regmatch.groups.Reason)) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) ${regmatch.groups.reason}`)
+            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) ${regmatch.groups.Reason}`)
         }
         else {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
-            console.warn(`unknown kill reason "${regmatch.groups.reason}"`)
-            DeathLogAttacher(death_log, `${regmatch.groups.victim} (${regmatch.groups.role}) [${regmatch[3]}]`)
+            console.error(`unknown kill reason "${regmatch.groups.Reason}"`)
+            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) [${regmatch[3]}]`)
         }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -731,14 +748,13 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
             tr.classList.add("notable_death")
         }
         if (!captured) {
-            throw new Error(`Single kill death was not captured "${regmatch.groups.reason}"`);
+            throw new Error(`Single kill death was not captured "${regmatch.groups.Reason}"`);
         }
         return;
     }
 
     //TEAMKILL
-    regmatch = REGEX_teamkill.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -754,8 +770,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 
     //SPAWN WAVE 1/2
-    regmatch = REGEX_Respawned_as.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
         DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
         if (!state.respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
@@ -768,23 +783,19 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         return;
     }
     //SPAWN WAVE 2/2
-    regmatch = REGEX_respawn_manager.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
         timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
         state.respawn_in_progress = false
         tr.classList.add("notable_death")
         return;
     }
     //FORCE CLASS
-    regmatch = REGEX_class_change.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
         timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
         return;
-
     }
-    regmatch = REGEX_3114_disguise_set.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = timeline.FindPlayerWithRole("Scp3114")
             tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
@@ -804,8 +815,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         tbody3114.appendChild(tr)
         return;
     }
-    regmatch = REGEX_3114_disguise_drop.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = timeline.FindPlayerWithRole("Scp3114")
             tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
@@ -838,11 +848,16 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
  */
 function LoggerHandle(new_lines, tr, timeline) {
     tr.classList.add("logger_event")
-    if (new_lines[4].search(REGEX_round_start) != -1) {
+    if (new_lines[4].search(SLRegExp.Logger.Ignore) != -1) {
+        console.debug(`Ignored ${new_lines[4]}`)
+        return
+    }
+
+    if (SLRegExp.Logger.RoundStart.test(new_lines[4])) {
         timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[1];
         return
     }
-    if (new_lines[4].search(REGEX_round_finish) != -1) {
+    if (SLRegExp.Logger.RoundFinish.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'round_finish')
         return
     }
@@ -862,8 +877,16 @@ function LoggerHandle(new_lines, tr, timeline) {
  * @param {{ respawn_in_progress: boolean; broadcast: boolean; admin_chat:boolean }} state
  */
 function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
-    let regmatch = REGEX_admin_chat.exec(new_lines[4])
-    if (regmatch != null) {
+    /**
+     * @type {RegExpExecArray}
+     */
+    let regmatch
+    if (SLRegExp.Administrative.LobbyLock.test(new_lines[4]) || SLRegExp.Administrative.RoundLock.test(new_lines[4])) {
+        console.debug(`Ignored ${new_lines[4]}`)
+        return
+    }
+
+    if (regmatch = SLRegExp.Administrative.AdminChat.exec(new_lines[4])) {
         const admin_name = window.document.createElement('span')
         const admin_message = window.document.createTextNode(`: ${regmatch[3]}`)
 
@@ -875,8 +898,7 @@ function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
         state.admin_chat = true
         return
     }
-    regmatch = REXEX_broadcast_text.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.Administrative.Broadcast.exec(new_lines[4])) {
         state.broadcast = true
         return
     }
@@ -906,15 +928,15 @@ function DeathLogAttacher(death_log, death_log_text) {
  */
 function WarheadHandle(new_lines, tr, timeline) {
     tr.classList.add("warhead_event")
-    if (new_lines[4].search(REGEX_warhead_countdown_start) != -1) {
+    if (SLRegExp.Warhead.CountdownStart.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
         return
     }
-    if (new_lines[4].search(REGEX_warhead_countdown_paused) != -1) {
+    if (SLRegExp.Warhead.CountdownPaused.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_paused')
         return
     }
-    if (new_lines[4].search(REGEX_warhead_detonated) != -1) {
+    if (SLRegExp.Warhead.Detonated.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_detonated')
         return
     }
@@ -932,19 +954,22 @@ function WarheadHandle(new_lines, tr, timeline) {
  * @param {Timeline} timeline 
  */
 function NetworkingHandle(new_lines, tr, timeline) {
-    let regmatch = REGEX_networking_ignore.exec(new_lines[4])
-    if (regmatch != null) {
+    /**
+     * @type {RegExpExecArray}
+     */
+    let regmatch
+
+    if (regmatch = SLRegExp.Networking.Ignore.exec(new_lines[4])) {
+        console.debug(`Ignored ${new_lines[4]}`)
         return
     }
 
-    regmatch = REGEX_ID_to_username.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.Networking.Nickname.exec(new_lines[4])) {
         UserID_assoc[regmatch[1]] = regmatch[2]
         return
     }
 
-    regmatch = REGEX_preauth.exec(new_lines[4])
-    if (regmatch != null) {
+    if (regmatch = SLRegExp.Networking.Preauth.exec(new_lines[4])) {
         //TODO: ALT DETECTION
         if (IPaddress_assoc[regmatch.groups.IPaddress] === undefined) {
             IPaddress_assoc[regmatch.groups.IPaddress] = new Array()
@@ -959,12 +984,11 @@ function NetworkingHandle(new_lines, tr, timeline) {
         IPaddress_assoc[regmatch.groups.IPaddress].push(regmatch.groups.UserID)
         return
     }
-    regmatch = REGEX_disconnect.exec(new_lines[4])
-    if (regmatch != null) {
-        if (regmatch.groups.role == "Destroyed") {
+    if (regmatch = SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
+        if (regmatch.groups.Role == "Destroyed") {
             return;
         }
-        timeline.BackPropagatePlayerRole(regmatch.groups.user, regmatch.groups.role)
+        timeline.BackPropagatePlayerRole(regmatch.groups.UserID, regmatch.groups.Role)
         return;
     }
     if (Settings.strict_mode) {
