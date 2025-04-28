@@ -1,5 +1,5 @@
 //@ts-check
-let version = "0.3.2"
+let version = "0.3.3"
 let indev = false
 
 
@@ -548,7 +548,7 @@ function MakeTimeLine() {
                         img.src = "icons/na.png"
                         break;
                     default:
-                        console.warn(`${log_line.groups.Module}: ${log_line.groups.Message}`);
+                        console.info(`Module '${log_line.groups.Module}' requires implementation: ${log_line.groups.Message}`);
                         img.src = "icons/na.png"
                         break;
                 }
@@ -672,6 +672,11 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
      */
     //DETONACJA WARHEAD
     let regmatch
+    if (SLRegExp.ClassChange.Ignore.test(new_lines[4])) {
+        console.debug(`Ignored ${new_lines[4]}`)
+        return
+    }
+
     if (regmatch = SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)

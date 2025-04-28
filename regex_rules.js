@@ -14,6 +14,7 @@ class SLRegExp {
     }
 
     static ClassChange = {
+        Ignore:         /^Player .+ \((?<UserID>.+)\) couldn't be added to spawn wave\. Err msg: (?<Reason>.+)\.$/,
         ForceClass:     /^.+ \((?<IssuerID>.+)\) changed role of player .+ \((?<AffectedID>.+)\) to (?<Role>.+)\.$/,
         RespawnAs:      /^Player .+ \((?<UserID>.+)\) respawned as (?<Role>.+).$/,
         RespawnManager: /^(?:RespawnManager|WaveSpawner) has successfully spawned (?<UserCount>\d+) players as (?<Team>.+)!$/,
