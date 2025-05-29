@@ -109,9 +109,6 @@ class Role {
 }
 
 class Timeline {
-    /**
-     * @param {[{player}]} keyframe
-     */
     keyframe = new Array();
     state = {
         respawn_in_progress: false,
@@ -337,17 +334,21 @@ let UserID_assoc = new Object();
 let IPaddress_assoc = new Object();
 const article_array = new Object();
 
+
+/**
+ * @this {HTMLLIElement}
+ */
 function FileSelector() {
     this.parentElement.childNodes.forEach(element => {
-        if (element.getAttribute('class') != null) {
-            element.removeAttribute('class')
+        if (/**@type {HTMLLIElement} */ (element).getAttribute('class') != null) {
+            /**@type {HTMLLIElement} */ (element).removeAttribute('class')
         }
     });
     this.setAttribute('class', 'selected')
     let index = 0;
     let currentItem = this
     while (currentItem.previousSibling) {
-        currentItem = currentItem.previousSibling
+        currentItem = /**@type {HTMLLIElement} */ (currentItem.previousSibling)
         index++
     }
     console.log(index)
@@ -355,8 +356,6 @@ function FileSelector() {
     main.getElementsByClassName('selected')[0].removeAttribute('class')
 
     main.children[index].setAttribute('class', 'selected')
-
-
     //TODO: HIDE AND SELECT
 }
 window.document.getElementById('test').addEventListener('click', SelectPlayer)
@@ -389,6 +388,10 @@ function CreateBadges() {
 
 }
 
+
+/**
+ * @this {HTMLDivElement}
+ */
 function SelectPlayer() {
     let userID = this.getAttribute('userid');
     let username = UserID_assoc[userID];
@@ -400,13 +403,16 @@ function SelectPlayer() {
     window.document.getElementById('userinfo').children['class'].innerText = this.classList[1]
 }
 
+/**
+ * @this {HTMLInputElement}
+ */
 function MakeTimeLine() {
     window.document.getElementById('progress_bar').style.display = 'block'
     window.document.getElementById('welcome').style.display = 'none'
     window.document.getElementById('log_select').innerHTML = ''
     window.document.getElementsByTagName('main')[0].innerHTML = ''
     for (let index = 0; index < this.files.length; index++) { // Generate file selector
-        let li = window.document.createElement('li')
+        const li = window.document.createElement('li')
         // li.id=`file_selector_${index}` // 
         li.addEventListener("click", FileSelector)
         li.innerText = `${this.files[index].name}`
@@ -451,7 +457,6 @@ function MakeTimeLine() {
 
             article.appendChild(table)
             article.appendChild(death_log)
-            let death_log_text = new String().toString();
 
             article.appendChild(window.document.createElement('hr'))
             article.appendChild(admin_chat_log)
@@ -473,8 +478,14 @@ function MakeTimeLine() {
             timeline[index] = new Timeline();
             console.debug(index)
             // document.getElementById('output').textContent = filereader.result;
-            // @ts-ignore
-            lines = filereader.result.split('\n');
+
+            if (typeof filereader.result === 'string') {
+                lines = filereader.result.split('\n');
+            }
+            else {
+                console.warn(typeof filereader.result)
+                throw new Error("Something went horribly wrong (reading data as binary instead of text?)");
+            }
 
             // const tbody = document.getElementById('table')
             tbody.innerHTML = ""
@@ -511,10 +522,10 @@ function MakeTimeLine() {
                 state.admin_chat = false;
 
                 {
-                    log_line.groups.Timestamp = log_line.groups.Timestamp.trim()
-                    log_line.groups.Type = log_line.groups.Type.trim()
-                    log_line.groups.Module = log_line.groups.Module.trim()
-                    log_line.groups.Message = log_line.groups.Message.trim()
+                    log_line.groups["Timestamp"] = log_line.groups["Timestamp"].trim()
+                    log_line.groups["Type"] = log_line.groups["Type"].trim()
+                    log_line.groups["Module"] = log_line.groups["Module"].trim()
+                    log_line.groups["Message"] = log_line.groups["Message"].trim()
                 }
 
                 for (let index = 0; index < log_line.length; index++) {
@@ -525,9 +536,9 @@ function MakeTimeLine() {
                 const img = document.createElement('img');
 
 
-                switch (log_line.groups.Module) {
+                switch (log_line.groups["Module"]) {
                     case "Administrative":
-                        AdministativeHandle(log_line, tr, timeline[index], state, admin_chat_log)
+                        AdministativeHandle(log_line, state, admin_chat_log)
                         img.src = "icons/shield.png"
                         break;
                     case "Logger":
@@ -544,11 +555,11 @@ function MakeTimeLine() {
                         img.src = "icons/nuclear-explosion.png"
                         break;
                     case "Networking":
-                        NetworkingHandle(log_line, tr, timeline[index])
+                        NetworkingHandle(log_line, timeline[index])
                         img.src = "icons/na.png"
                         break;
                     default:
-                        console.info(`Module '${log_line.groups.Module}' requires implementation: ${log_line.groups.Message}`);
+                        console.info(`Module '${log_line.groups["Module"]}' requires implementation: ${log_line.groups["Message"]}`);
                         img.src = "icons/na.png"
                         break;
                 }
@@ -560,7 +571,7 @@ function MakeTimeLine() {
                     td.textContent = log_line[index]
                     tr.appendChild(td)
                 }
-                if (SLRegExp.DeathReason.SCPIntentional.test(log_line.groups.Message)) {
+                if (SLRegExp.DeathReason.SCPIntentional.test(log_line.groups["Message"])) {
                     if (tr.classList.contains("notable_death")) {
                         tr.classList.remove("notable_death")
                     }
@@ -605,9 +616,9 @@ function MakeTimeLine() {
                             if (DatabaseIP != null && PlayerIP != null) {
                                 let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
                                 let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
-                                if (DatabaseIP.groups.CIDR != undefined) { // if no CIDR just compare
-                                    player_IP = player_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
-                                    db_IP = db_IP.slice(0, Number(DatabaseIP.groups.CIDR)).padEnd(32, '0')
+                                if (DatabaseIP.groups["CIDR"] != undefined) { // if no CIDR just compare
+                                    player_IP = player_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
+                                    db_IP = db_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
 
                                 }
                                 if (db_IP == player_IP) {
@@ -644,7 +655,7 @@ function MakeTimeLine() {
     }
 }
 
-window.addEventListener('error', (ErrorEvent) => {
+window.addEventListener('error', () => {
     document.getElementById('error_bar').style.display = 'block';
 })
 if (indev) {
@@ -725,26 +736,26 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         let captured = false
         let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
-        if (SLRegExp.DeathReason.Suicide.test(regmatch.groups.Reason)) {
+        if (SLRegExp.DeathReason.Suicide.test(regmatch.groups["Reason"])) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
-            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) commited suicide [${regmatch[3]}]`)
+            DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) commited suicide [${regmatch[3]}]`)
         }
-        else if (SLRegExp.DeathReason.Recontained.test(regmatch.groups.Reason)) {
+        else if (SLRegExp.DeathReason.Recontained.test(regmatch.groups["Reason"])) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) has been recontained`)
+            DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) has been recontained`)
         }
-        else if (SLRegExp.DeathReason.Decayed.test(regmatch.groups.Reason)) {
+        else if (SLRegExp.DeathReason.Decayed.test(regmatch.groups["Reason"])) {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) ${regmatch.groups.Reason}`)
+            DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) ${regmatch.groups["Reason"]}`)
         }
         else {
             captured = true
             timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
-            console.error(`unknown kill reason "${regmatch.groups.Reason}"`)
-            DeathLogAttacher(death_log, `${regmatch.groups.UserID} (${regmatch.groups.UserRole}) [${regmatch[3]}]`)
+            console.error(`unknown kill reason "${regmatch.groups["Reason"]}"`)
+            DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) [${regmatch[3]}]`)
         }
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -753,7 +764,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
             tr.classList.add("notable_death")
         }
         if (!captured) {
-            throw new Error(`Single kill death was not captured "${regmatch.groups.Reason}"`);
+            throw new Error(`Single kill death was not captured "${regmatch.groups["Reason"]}"`);
         }
         return;
     }
@@ -876,12 +887,10 @@ function LoggerHandle(new_lines, tr, timeline) {
 
 /**
  * @param {string[]} new_lines
- * @param {HTMLTableRowElement} tr
- * @param {Timeline} timeline
  * @param {HTMLSpanElement} admin_chat_log
  * @param {{ respawn_in_progress: boolean; broadcast: boolean; admin_chat:boolean }} state
  */
-function AdministativeHandle(new_lines, tr, timeline, state, admin_chat_log) {
+function AdministativeHandle(new_lines, state, admin_chat_log) {
     /**
      * @type {RegExpExecArray}
      */
@@ -955,10 +964,9 @@ function WarheadHandle(new_lines, tr, timeline) {
 
 /**
  * @param {string[]} new_lines
- * @param {HTMLTableRowElement} tr
  * @param {Timeline} timeline 
  */
-function NetworkingHandle(new_lines, tr, timeline) {
+function NetworkingHandle(new_lines, timeline) {
     /**
      * @type {RegExpExecArray}
      */
@@ -976,24 +984,24 @@ function NetworkingHandle(new_lines, tr, timeline) {
 
     if (regmatch = SLRegExp.Networking.Preauth.exec(new_lines[4])) {
         //TODO: ALT DETECTION
-        if (IPaddress_assoc[regmatch.groups.IPaddress] === undefined) {
-            IPaddress_assoc[regmatch.groups.IPaddress] = new Array()
+        if (IPaddress_assoc[regmatch.groups["IPaddress"]] === undefined) {
+            IPaddress_assoc[regmatch.groups["IPaddress"]] = new Array()
         }
-        for (let index = 0; index < IPaddress_assoc[regmatch.groups.IPaddress].length; index++) {
-            const element = IPaddress_assoc[regmatch.groups.IPaddress][index];
-            if (element == regmatch.groups.UserID) {
+        for (let index = 0; index < IPaddress_assoc[regmatch.groups["IPaddress"]].length; index++) {
+            const element = IPaddress_assoc[regmatch.groups["IPaddress"]][index];
+            if (element == regmatch.groups["UserID"]) {
                 return // If user already exists, do not append
             }
         }
 
-        IPaddress_assoc[regmatch.groups.IPaddress].push(regmatch.groups.UserID)
+        IPaddress_assoc[regmatch.groups["IPaddress"]].push(regmatch.groups["UserID"])
         return
     }
     if (regmatch = SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
-        if (regmatch.groups.Role == "Destroyed") {
+        if (regmatch.groups["Role"] == "Destroyed") {
             return;
         }
-        timeline.BackPropagatePlayerRole(regmatch.groups.UserID, regmatch.groups.Role)
+        timeline.BackPropagatePlayerRole(regmatch.groups["UserID"], regmatch.groups["Role"])
         return;
     }
     if (Settings.strict_mode) {

@@ -3,3 +3,4 @@ test.js
 .vscode/
 reference/
 out/
+node_modules/
