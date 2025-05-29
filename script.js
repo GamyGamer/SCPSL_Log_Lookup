@@ -511,7 +511,7 @@ function MakeTimeLine() {
                 state.admin_chat = false;
 
                 {
-                    log_line.groups.Time = log_line.groups.Time.trim()
+                    log_line.groups.Timestamp = log_line.groups.Timestamp.trim()
                     log_line.groups.Type = log_line.groups.Type.trim()
                     log_line.groups.Module = log_line.groups.Module.trim()
                     log_line.groups.Message = log_line.groups.Message.trim()

@@ -1,6 +1,6 @@
 // @ts-check
 class SLRegExp {
-    static SplitLogs = /^(?<Time>.+?)\|(?<Type>.+?)\|(?<Module>.+?)\|(?<Message>.+)$/
+    static SplitLogs = /^(?<Timestamp>.+?)\|(?<Type>.+?)\|(?<Module>.+?)\|(?<Message>.+)$/
     static SplitIP = /^(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?$/
 
     static Administrative = {
@@ -18,11 +18,12 @@ class SLRegExp {
         ForceClass:     /^.+ \((?<IssuerID>.+)\) changed role of player .+ \((?<AffectedID>.+)\) to (?<Role>.+)\.$/,
         RespawnAs:      /^Player .+ \((?<UserID>.+)\) respawned as (?<Role>.+).$/,
         RespawnManager: /^(?:RespawnManager|WaveSpawner) has successfully spawned (?<UserCount>\d+) players as (?<Team>.+)!$/,
-        Suicide:        /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has commited suicide. Specific death reason: (?<Reason>.+)\.$/, //Needs to be standardized to one group as it creates unnecessary duplicates
+        Suicide:        /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has commited suicide\. Specific death reason: (?<Reason>.+)\.$/, //Needs to be standardized to one group as it creates unnecessary duplicates
         Warhead:        /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has died\. Specific death reason: Died to alpha warhead\.$/,
         SingleKill:     /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has died\. Specific death reason: (?<Reason>.+)\.$/,
         DirectKill:     /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has been killed by .+ \((?<IssuerID>.+)\) playing as: (?<IssuerRole>.+)\. Specific death reason: (?<Reason>.+)\.$/,
         TeamKill:       /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has been teamkilled by .+ \((?<IssuerID>.+)\) playing as: (?<IssuerRole>.+)\. Specific death reason: (?<Reason>.+)\.$/,
+        Death:           /^.+ \((?<UserID>.+?)\), playing as (?<UserRole>.+?), has (?<Classifier>(?:died|been (?:team)?killed))(?: by .+ \((?<IssuerID>.+?)\) playing as: (?<IssuerRole>.+?))?\. Specific death reason: (?<Reason>.+)\.$/,
         Skeleton: {
             DisguiseSet: /is now impersonating (?<UserName>.+), playing as (?<Role>.+)\./,
             DisguiseDrop: /is no longer disguised\./

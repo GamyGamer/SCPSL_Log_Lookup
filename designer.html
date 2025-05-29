@@ -185,7 +185,14 @@
                 </tbody>
             </table>
         </article>
+        <canvas id="test"></canvas>
     </main>
+    <script>
+        let canvas = document.getElementById('test')
+        let ctx = canvas.getContext('2d')
+        ctx.fillStyle='green'
+        ctx.fillRect(10,10,100,100)
+    </script>
 </body>
 
 </html>
