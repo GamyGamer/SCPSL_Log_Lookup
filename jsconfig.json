@@ -8,7 +8,7 @@
         // "strictNullChecks": true,
         "strictFunctionTypes": true,
         "alwaysStrict": true,
-        // "noImplicitAny": true,
+        "noImplicitAny": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,

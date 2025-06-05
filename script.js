@@ -1,6 +1,6 @@
 //@ts-check
-let version = "0.3.3"
-let indev = false
+let version = "0.3.4"
+let indev = true
 
 
 /*
@@ -329,10 +329,22 @@ class Timeline {
 
 }
 
-let timeline = new Object();
-let UserID_assoc = new Object();
-let IPaddress_assoc = new Object();
-const article_array = new Object();
+/**
+ * @type {Array<Timeline>}
+ */
+let timeline = new Array();
+/**
+ * @type {Map<string,string>}
+ */
+let UserID_assoc = new Map();
+/**
+ * @type {Map<string,Array<string>>}
+ */
+let IPaddress_assoc = new Map();
+/**
+ * @type {Array<HTMLElement>}
+ */
+const article_array = new Array();
 
 
 /**
@@ -377,7 +389,7 @@ function CreateBadges() {
         nickname.classList.add('nickname')
         role.classList.add('role')
 
-        nickname.innerText = UserID_assoc[UserID]
+        nickname.innerText = UserID_assoc.get(UserID)
 
         badge.appendChild(image)
         badge.appendChild(nickname)
@@ -394,13 +406,13 @@ function CreateBadges() {
  */
 function SelectPlayer() {
     let userID = this.getAttribute('userid');
-    let username = UserID_assoc[userID];
+    let username = UserID_assoc.get(userID);
 
-    window.document.getElementById('userinfo').children['nickname'].innerText = username;
-    window.document.getElementById('userinfo').children['playerid'].innerText = '2';
-    window.document.getElementById('userinfo').children['ipaddress']
-    window.document.getElementById('userinfo').children['userid'].innerText = userID;
-    window.document.getElementById('userinfo').children['class'].innerText = this.classList[1]
+    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('nickname')).innerText = username;
+    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('playerid')).innerText = '2';
+    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('ipaddress')).innerText = '';
+    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('userid')).innerText = userID;
+    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('class')).innerText = this.classList[1]
 }
 
 /**
@@ -421,15 +433,15 @@ function MakeTimeLine() {
         }
         window.document.getElementById('log_select').appendChild(li);
     }
-    timeline = new Object();
+    timeline = new Array();
     console.clear()
-    UserID_assoc = new Object();
-    IPaddress_assoc = new Object();
+    UserID_assoc.clear()
+    IPaddress_assoc.clear()
     let progressbar_current = 0
     window.document.getElementById('progress_bar').setAttribute('max', (this.files.length - 1).toString())
 
-
-    for (const [index, file] of Object.entries(this.files)) {
+    
+    for (const [index, file] of /**@type {[number,File][]}*/(/**@type {[unknown, File][]}) */ (Object.entries(this.files)))) {
         console.log(`${index}: ${file}`)
         let filereader = new FileReader();
         filereader.addEventListener('load', () => { //WARNING: This is done in async way, note possible race conditions
@@ -624,8 +636,8 @@ function MakeTimeLine() {
                                 if (db_IP == player_IP) {
                                     for (let index = 0; index < userID.length; index++) {
                                         const element = userID[index];
-                                        if (UserID_assoc[element] != undefined) {
-                                            alert(`Monitored user ${UserID_assoc[element]} (${IPaddress_assoc[IPaddress]}) [${IPaddress}] [${element}] was found`) //TOFIX
+                                        if (UserID_assoc.get(element) != undefined) {
+                                            alert(`Monitored user ${UserID_assoc.get(element)} (${IPaddress_assoc.get(IPaddress)}) [${IPaddress}] [${element}] was found`) //TOFIX
                                             break
                                         }
                                     }
@@ -814,7 +826,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = timeline.FindPlayerWithRole("Scp3114")
-            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
+            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
             tbody3114.style.display = 'inherit'
             if (Player3114 != null) {
                 state.is_3114_in_game = true
@@ -834,7 +846,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = timeline.FindPlayerWithRole("Scp3114")
-            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc[Player3114]} (${Player3114})`
+            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
             tbody3114.style.display = 'inherit'
             if (Player3114 != null) {
                 state.is_3114_in_game = true
@@ -861,6 +873,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
 /**
  * @param {string[]} new_lines
  * @param {HTMLTableRowElement} tr
+ * @param {Timeline} timeline
  */
 function LoggerHandle(new_lines, tr, timeline) {
     tr.classList.add("logger_event")
@@ -978,23 +991,23 @@ function NetworkingHandle(new_lines, timeline) {
     }
 
     if (regmatch = SLRegExp.Networking.Nickname.exec(new_lines[4])) {
-        UserID_assoc[regmatch[1]] = regmatch[2]
+        UserID_assoc.set(regmatch[1], regmatch[2])
         return
     }
 
     if (regmatch = SLRegExp.Networking.Preauth.exec(new_lines[4])) {
         //TODO: ALT DETECTION
-        if (IPaddress_assoc[regmatch.groups["IPaddress"]] === undefined) {
-            IPaddress_assoc[regmatch.groups["IPaddress"]] = new Array()
+        if (IPaddress_assoc.get(regmatch.groups["IPaddress"]) === undefined) {
+            IPaddress_assoc.set(regmatch.groups["IPaddress"],new Array())
         }
-        for (let index = 0; index < IPaddress_assoc[regmatch.groups["IPaddress"]].length; index++) {
-            const element = IPaddress_assoc[regmatch.groups["IPaddress"]][index];
+        for (let index = 0; index < IPaddress_assoc.get(regmatch.groups["IPaddress"]).length; index++) {
+            const element = IPaddress_assoc.get(regmatch.groups["IPaddress"])[index];
             if (element == regmatch.groups["UserID"]) {
                 return // If user already exists, do not append
             }
         }
 
-        IPaddress_assoc[regmatch.groups["IPaddress"]].push(regmatch.groups["UserID"])
+        IPaddress_assoc.get(regmatch.groups["IPaddress"]).push(regmatch.groups["UserID"])
         return
     }
     if (regmatch = SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
