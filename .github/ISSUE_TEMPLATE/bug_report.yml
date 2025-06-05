@@ -1,0 +1,65 @@
+name: Zgłoś błąd
+description: Zgłoś błąd który został napotkany podczas korzystania z narzędzia
+labels: ["bug"]
+assignees:
+ - GamyGamer
+body:
+  - type: dropdown
+    id: server_type
+    attributes:
+      label: Typ serwera
+      description: Na jakim typie serwera wystąpił błąd?
+      options:
+        - Vanilla
+        - Modded
+        - Niedotyczy (błąd nie jest związany z konkretnym plikiem)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Wersja
+      description: Numer wersji jest podany na samym dole programu
+      placeholder: Wersja programu
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: Opis błędu
+      description: Opisz błąd który został napotkany
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Kroki do odtworzenia błędu
+      description: Po opisaniu głównego błędu opisz swoje kroki jakie zostały dokonane w celu uzyskania tego błędu.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Logi programu
+      description: Podaj informacje z dziennika zdarzeń które pojawiły się podczas wykonywania. (informacje te znajdziejsz w konsoli przeglądarki) Wraz z tym proszę żeby zawierało informację w którym miejscu kodu nastąpił błąd (Prawy przycisk -> Kopiuj wszystkie komunikaty).
+      placeholder: WYKREŚL prywatne informacje (UserID, adresIP itp.)
+    validations:
+      required: true
+  - type: input
+    id: filename
+    attributes:
+      label: Plik roundlogs w którym występuje problem
+      description: Jeśli twórca programu znajduje się w twojej administracji i ma dostęp do dziennika podaj nazwe pliku tekstowego w którym wystąpił błąd. 
+      placeholder: Nazwa pliku
+    validations:
+      required: false     
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: "Informuję, że:"
+      description: Zaznacz jeśli przeczytałeś
+      options:
+        - label: Korzystam z najnowszej wersji tego programu (https://github.com/GamyGamer/SCPSL_Log_Lookup lub https://gamygamer.github.io/SCPSL_Log_Lookup/)
+          required: true
+        - label: Przeszukałem otwarte jak i zamknięte złoszenia w celu upewnienia się że dany błąd nie został już zgłoszony na tej samej wersji
+          required: true
