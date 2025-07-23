@@ -44,7 +44,7 @@ body:
       description: Podaj informacje z dziennika zdarzeń które pojawiły się podczas wykonywania. (informacje te znajdziejsz w konsoli przeglądarki) Wraz z tym proszę żeby zawierało informację w którym miejscu kodu nastąpił błąd (Prawy przycisk -> Kopiuj wszystkie komunikaty).
       placeholder: WYKREŚL prywatne informacje (UserID, adresIP itp.)
     validations:
-      required: true
+      required: false
   - type: input
     id: filename
     attributes:

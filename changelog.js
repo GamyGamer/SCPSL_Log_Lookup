@@ -23,7 +23,8 @@ let changelog = {
     `,
     '0.3.1':`[HOTFIX] Wstępne wsparcie publicznej bety`,
     '0.3.2':`Naprawiono błąd wywalający cały program jeśli znajdowała się pusta linijka w pliku (admin chat / broadcast)`,
-    '0.3.3':`[HOTFIX] Ignoruj losowy błąd który pojawia się podczas fali respu`
+    '0.3.3':`[HOTFIX] Ignoruj losowy błąd który pojawia się podczas fali respu`,
+    '0.3.4':`Naprawiono błąd w komunikatorze administracyjnym gdzie administrator posiadał nawias kwadratowy w nicku.`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {

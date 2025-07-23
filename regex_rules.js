@@ -4,7 +4,7 @@ class SLRegExp {
     static SplitIP = /^(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?$/
 
     static Administrative = {
-        AdminChat: /^\[(?<UserName>.+?)(?: \((?<UserID>.+?)\))?\] (?<Text>.+)$/, // TOFIX: Chat as SERVER CONSOLE
+        AdminChat: /^\[(?<UserName>.+)(?:(?<=\[SERVER CONSOLE)\]|(?: \((?<UserID>.+?)\))\]) (?<Text>.+)$/,  
         RoundLock: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) round lock\.$/,
         LobbyLock: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) lobby lock\.$/,
         Broadcast: /^.+ \((?<UserID>.+)\) broadcast text ".+$/
@@ -23,7 +23,7 @@ class SLRegExp {
         SingleKill:     /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has died\. Specific death reason: (?<Reason>.+)\.$/,
         DirectKill:     /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has been killed by .+ \((?<IssuerID>.+)\) playing as: (?<IssuerRole>.+)\. Specific death reason: (?<Reason>.+)\.$/,
         TeamKill:       /^.+ \((?<UserID>.+)\), playing as (?<UserRole>.+), has been teamkilled by .+ \((?<IssuerID>.+)\) playing as: (?<IssuerRole>.+)\. Specific death reason: (?<Reason>.+)\.$/,
-        Death:           /^.+ \((?<UserID>.+?)\), playing as (?<UserRole>.+?), has (?<Classifier>(?:died|been (?:team)?killed))(?: by .+ \((?<IssuerID>.+?)\) playing as: (?<IssuerRole>.+?))?\. Specific death reason: (?<Reason>.+)\.$/,
+        Death:          /^.+ \((?<UserID>.+?)\), playing as (?<UserRole>.+?), has (?<Classifier>(?:died|been (?:team)?killed))(?: by .+ \((?<IssuerID>.+?)\) playing as: (?<IssuerRole>.+?))?\. Specific death reason: (?<Reason>.+)\.$/,
         Skeleton: {
             DisguiseSet: /is now impersonating (?<UserName>.+), playing as (?<Role>.+)\./,
             DisguiseDrop: /is no longer disguised\./
