@@ -4,3 +4,5 @@ test.js
 reference/
 out/
 node_modules/
+dist/
+decl/

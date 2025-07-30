@@ -2,10 +2,10 @@
     "compilerOptions": {
         "module": "ESNext",
         "moduleResolution": "Bundler",
-        "target": "ES2020",
+        "target": "es2024",
         "jsx": "react",
         "allowImportingTsExtensions": true,
-        // "strictNullChecks": true,
+        "strictNullChecks": true,
         "strictFunctionTypes": true,
         "alwaysStrict": true,
         "noImplicitAny": true,
@@ -17,10 +17,10 @@
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        // "strict": true,
+        "strict": true,
         "strictBindCallApply": true,
         "strictBuiltinIteratorReturn": true,
-        // "strictPropertyInitialization": true,
+        "strictPropertyInitialization": true,
         "useUnknownInCatchVariables": true,
         "checkJs": true,
         "disableSizeLimit": true,
@@ -31,6 +31,7 @@
     },
     "exclude": [
         "node_modules",
-        "**/node_modules/*"
+        "**/node_modules/*",
+        "**/dist/*"
     ]
 }

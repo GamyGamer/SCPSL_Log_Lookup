@@ -1,5 +1,4 @@
-//@ts-check
-window.document.getElementById('output').innerText = ''
+window.document.getElementById('output')!.innerText = ''
 let changelog = {
     '0.0.1': `Program został publicznie udostępniony`,
     '0.0.2': `Czerwony kolor jest teraz tylko wyświetlany do podświetlenia śmierci SCP, respawn oraz zgony cywili nie przez SCP`,
@@ -21,11 +20,11 @@ let changelog = {
     Przeniesienie definicji tłumaczeń roli do klasy \`Role\`
     Dodano tabelkę z informacjami o szkielecie
     `,
-    '0.3.1':`[HOTFIX] Wstępne wsparcie publicznej bety`,
-    '0.3.2':`Naprawiono błąd wywalający cały program jeśli znajdowała się pusta linijka w pliku (admin chat / broadcast)`,
-    '0.3.3':`[HOTFIX] Ignoruj losowy błąd który pojawia się podczas fali respu`
+    '0.3.1': `[HOTFIX] Wstępne wsparcie publicznej bety`,
+    '0.3.2': `Naprawiono błąd wywalający cały program jeśli znajdowała się pusta linijka w pliku (admin chat / broadcast)`,
+    '0.3.3': `[HOTFIX] Ignoruj losowy błąd który pojawia się podczas fali respu`
 }
 
 for (const [Version, Text] of Object.entries(changelog)) {
-    window.document.getElementById('output').innerText += `${Version}:\n${Text}\n\n`
+    window.document.getElementById('output')!.innerText += `${Version}:\n${Text}\n\n`
 }

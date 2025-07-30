@@ -1,8 +1,15 @@
-//@ts-check
-let version = "0.3.4"
+import './style.css';
+import './roles.css';
+import { Icon } from './icons';
+import { SLRegExp, SLRegExpGroupsInterface } from './regex_rules';
+import { Settings } from './settings';
+import { Role } from './role';
+import { Timeline } from './timeline';
+import './super_secret_settings';
+
+
+let version = "0.3.4-ts001"
 let indev = true
-
-
 /*
     Tytuł projektu: SCP:SL LOG PARSER
     Cel projektu: Przetwarzanie logów rund serwera SCP:SL w celu łatwego podglądu
@@ -38,359 +45,56 @@ let indev = true
     -If someone is seen for the first time assume current role as their first role (unless respawn manager)
 
 */
-class Role {
-    static Aligments = {
-        SCP: ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114"],
-        Foundation: ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "Scientist"],
-        Chaos: ["ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "ClassD"],
-        Misc: ["Spectator", "Overwatch", "Filmmaker", "Tutorial"]
-    }
-    static Military = ["NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor"];
-    static Civilian = ["Scientist", "ClassD"]
-    static role_dictonary = {
-        "Scp173": "SCP-173",
-        "Scp106": "SCP-106",
-        "Scp049": "SCP-049",
-        "Scp079": "SCP-079",
-        "Scp096": "SCP-096",
-        "Scp0492": "SCP-049-2",
-        "Scp939": "SCP-939",
-        "Scp3114": "SCP-3114",
-        "NtfSpecialist": "Nine-Tailed Fox Specialist",
-        "NtfSergeant": "Nine-Tailed Fox Sergeant",
-        "NtfCaptain": "Nine-Tailed Fox Captain",
-        "NtfPrivate": "Nine-Tailed Fox Private",
-        "FacilityGuard": "Facility Guard",
-        "ChaosConscript": "Chaos Insurgency Conscript",
-        "ChaosRifleman": "Chaos Insurgency Rifleman",
-        "ChaosMarauder": "Chaos Insurgency Marauder",
-        "ChaosRepressor": "Chaos Insurgency Repressor",
-        "Scientist": "Scientist",
-        "ClassD": "Class-D Personnel",
-        "Spectator": "Spectator",
-        "Overwatch": "Overwatch",
-        "Filmmaker": "Filmmaker",
-        "Tutorial": "Tutorial",
-        "Destroyed": "Destroyed"
-    }
-    static Order = ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114", "NtfSpecialist", "NtfSergeant", "NtfCaptain", "NtfPrivate", "FacilityGuard", "ChaosConscript", "ChaosRifleman", "ChaosMarauder", "ChaosRepressor", "Scientist", "ClassD", "Spectator", "None", "Overwatch", "Filmmaker", "Tutorial"]
-    /**
-     * @param {string} Role
-     * @returns {boolean}
-     */
-    static IsCivilian(Role) {
-        if (Role == undefined) {
-            throw new Error("Role is undefined");
-        }
-        let found = false
-        this.Civilian.forEach(element => {
-            if (element == Role) {
-                found = true
-            }
-        })
-        return found
-    }
-    /**
-     * @param {string} Role
-     * @returns {boolean}
-     */
-    static IsSCP(Role) {
-        if (Role == undefined) {
-            throw new Error("Role is undefined");
-        }
-        let found = false
-        this.Aligments.SCP.forEach(element => {
-            if (element == Role) {
-                found = true
-            }
-        })
-        return found
-    }
-}
 
-class Timeline {
-    keyframe = new Array();
-    state = {
-        respawn_in_progress: false,
-        multiline_message: false
-    }
-    constructor() {
-        this.NewKeyFrame(null, 'round_start')
-    }
-    Clear() {
-        this.keyframe = new Array();
-        this.NewKeyFrame(null, 'round_start')
-        this.state.multiline_message = false
-        this.state.respawn_in_progress = false
-    }
-    /**
-     * Converts translated roles to internal
-     * @param {string} role
-     * @returns {string} 
-     */
-    TranslateToInternal(role) {
-        if (role == undefined) {
-            throw new Error("Unable to translate undefined role")
-        }
-        if (role == "None") {
-            console.warn("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
-            return "None"
-        }
-        if (role == "Destroyed") { // TODO: Can cause issue at the end of the round in the back propagation stage
-            return "Spectator"
-        }
-        for (const [internal, translated] of Object.entries(Role.role_dictonary)) {
-
-            if (role == internal || role == translated) {
-                return internal
-            }
-        }
-        if (Settings.strict_mode) {
-            throw new Error(`Role "${role}" has no defined translation`)
-        }
-        else {
-            console.warn(`Role "${role}" has no defined translation`)
-        }
-        return "UnknownRole_ReportToLogParserProgrammer"
-        // throw new Error(`Role "${role}" has no defined translation`)
-    }
-    /**
-     * Creates new keyframe with optional parameters
-     * @param {string} timestamp 
-     * @param {string} event 
-     * @return {number}
-     */
-    NewKeyFrame(timestamp = undefined, event = undefined) {
-        let current_keyframe = this.keyframe.push(new Object()) - 1;
-        this.keyframe[current_keyframe].timestamp = timestamp;
-        this.keyframe[current_keyframe].event = event;
-        this.keyframe[current_keyframe].player = new Object();
-        return current_keyframe;
-    }
-    /**
-     * @param {number} keyframe
-     * @param {string} event
-     */
-    EditKeyFrameEvent(keyframe, event) {
-        if (keyframe == undefined) {
-            throw new Error("keyframe is undefined");
-        }
-        if (event == undefined) {
-            throw new Error("event is undefined");
-        }
-        this.keyframe[keyframe].event = event
-    }
-    /**
-     * 
-     * @param {number} keyframe Indexing starts from 0 (round start) to length of array that contains keyframes
-     * @param {string} UserID 
-     * @param {string} Role
-     */
-    AddPlayer(keyframe = null, UserID = null, Role = null) {
-        if (keyframe == null) {
-            throw new Error("keyframe is null")
-        }
-        if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
-            throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
-        }
-        if (UserID == null) {
-            throw new Error("UserID is null")
-        }
-        if (Role == null) {
-            throw new Error("Role is null")
-        }
-        Role = this.TranslateToInternal(Role)
-        if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != Role) {
-            if (Role != 'Scp0492') { // Write as error
-                console.warn(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
-            }
-            else {
-                console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
-            }
-        }
-        this.keyframe[keyframe].player[UserID] = Role
-    }
-    /**
-     * 
-     * @param {number} keyframe 
-     * @param {string} userID 
-     */
-    AddKiller(keyframe = undefined, userID = undefined) {
-        if (keyframe == undefined) {
-            throw new Error("keyframe is undefined")
-        }
-        if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
-            throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
-        }
-        if (userID == undefined) {
-            throw new Error("UserID is undefined")
-        }
-        this.keyframe[keyframe].killer = userID;
-    }
-    /**
-     * 
-     * @param {string} UserID 
-     * @returns {boolean}
-     */
-    PlayerExist(UserID = null) {
-        if (UserID == null) {
-            throw new Error("UserID is null")
-        }
-        for (let index = this.keyframe.length - 1; index >= 0; index--) {
-            if (this.keyframe[index].player[UserID] != undefined) {
-                return true
-            }
-        }
-        return false;
-    }
-    /**
-     * 
-     * @param {string} event
-     * @returns {number} index 
-     */
-    FindNewestEventType(event) {
-        if (event == undefined) {
-            throw new Error("event type is undefined")
-        }
-        for (let index = this.keyframe.length - 1; index >= 0; index--) {
-            if (this.keyframe[index].event == event) {
-                return index
-            }
-        }
-        throw new Error(`Event ${event} does not exist`)
-    }
-    /**
-     * Method to find newest keyframe index, passing Role and keyframe narrows searching 
-     * @param {string} UserID 
-     * @param {string} Role
-     * @param {number} keyframe 
-     * @returns {number} index
-     */
-    FindNewestPlayer(UserID, Role = undefined, keyframe = undefined) {
-        if (!this.PlayerExist(UserID)) {
-            throw new Error(`Player ${UserID} Does not exists`)
-        }
-        let startfrom;
-        if (keyframe == undefined) {
-            startfrom = this.keyframe.length - 1;
-        }
-        else {
-            startfrom = keyframe
-        }
-
-        if (Role == undefined) {
-            for (let index = startfrom; index >= 0; index--) {
-                if (this.keyframe[index].player[UserID] != undefined) {
-                    return index
-                }
-            }
-        }
-        else {
-            Role = this.TranslateToInternal(Role)
-            for (let index = startfrom; index >= 0; index--) {
-                if (this.keyframe[index].player[UserID] == Role) {
-                    return index
-                }
-            }
-        }
-        throw new Error(`Unable to find player ${UserID} with ${Role} role`)
-
-    }
-    /**
-     * 
-     * @param {string} role 
-     */
-    FindPlayerWithRole(role = undefined) {
-        if (role == undefined) {
-            throw new Error("Role is undefined");
-        }
-        for (const [playerID, playerRole] of Object.entries(this.keyframe[0].player)) {
-            if (playerRole == role) {
-                return playerID;
-            }
-        }
-        return null;
+let timeline: Array<Timeline> = new Array();
+let UserID_assoc: Map<string, string> = new Map();
+let IPaddress_assoc: Map<string, Array<string>> = new Map();
+const article_array: Array<HTMLElement> = new Array();
 
 
-    }
-    /**
-    * W momencie otrzymania roli następuje wsteczna propagacja w osi czasu
-    * @param {string} UserID 
-    * @param {string} Role 
-    */
-    BackPropagatePlayerRole(UserID, Role) {
-        if (!this.PlayerExist(UserID)) { // If player does not exist assume that's their first role (round start)
-            this.AddPlayer(0, UserID, Role)
-        }
-        else {
-            this.AddPlayer(this.FindNewestPlayer(UserID), UserID, Role)  //Złap zombiaka
-        }
-    }
-
-}
-
-/**
- * @type {Array<Timeline>}
- */
-let timeline = new Array();
-/**
- * @type {Map<string,string>}
- */
-let UserID_assoc = new Map();
-/**
- * @type {Map<string,Array<string>>}
- */
-let IPaddress_assoc = new Map();
-/**
- * @type {Array<HTMLElement>}
- */
-const article_array = new Array();
-
-
-/**
- * @this {HTMLLIElement}
- */
-function FileSelector() {
-    this.parentElement.childNodes.forEach(element => {
-        if (/**@type {HTMLLIElement} */ (element).getAttribute('class') != null) {
-            /**@type {HTMLLIElement} */ (element).removeAttribute('class')
+function FileSelector(this: HTMLLIElement) {
+    (<HTMLElement>this.parentElement).childNodes.forEach(element => {
+        if ((<HTMLLIElement>element).getAttribute('class') != null) {
+            (<HTMLLIElement>element).removeAttribute('class')
         }
     });
     this.setAttribute('class', 'selected')
     let index = 0;
     let currentItem = this
     while (currentItem.previousSibling) {
-        currentItem = /**@type {HTMLLIElement} */ (currentItem.previousSibling)
+        currentItem = (<HTMLLIElement>currentItem.previousSibling)
         index++
     }
     console.log(index)
-    const main = window.document.getElementsByTagName('main')[0]
-    main.getElementsByClassName('selected')[0].removeAttribute('class')
+    const main = window.document.getElementsByTagName('main')[0]!
+    main.getElementsByClassName('selected')[0]!.removeAttribute('class')
 
-    main.children[index].setAttribute('class', 'selected')
+    main.children[index]?.setAttribute('class', 'selected')
     //TODO: HIDE AND SELECT
 }
-window.document.getElementById('test').addEventListener('click', SelectPlayer)
 
 function CreateBadges() {
-    const spectator_viewer = window.document.getElementById('spectator_badges')
+    const spectator_viewer = window.document.getElementById('spectator_badges')!
     spectator_viewer.innerHTML = ''
     //DOM CREATION
     for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
         const badge = window.document.createElement('div');
         const image = window.document.createElement('img');
         const nickname = window.document.createElement('span');
-        const role = window.document.createElement('span')
-
+        const role = window.document.createElement('span');
+        const nicknameText = UserID_assoc.get(UserID)
 
         badge.classList.add('spectator_badge')
-        badge.classList.add(Current_Role)
+        badge.classList.add(<string>Current_Role)
         badge.setAttribute('userid', UserID);
         nickname.classList.add('nickname')
         role.classList.add('role')
 
-        nickname.innerText = UserID_assoc.get(UserID)
+        if (nicknameText == undefined) {
+            throw new Error("A");
 
+        }
+        nickname.innerText = nicknameText
         badge.appendChild(image)
         badge.appendChild(nickname)
         badge.appendChild(role)
@@ -400,29 +104,29 @@ function CreateBadges() {
 
 }
 
-
-/**
- * @this {HTMLDivElement}
- */
-function SelectPlayer() {
+function SelectPlayer(this: HTMLDivElement) {
     let userID = this.getAttribute('userid');
+    if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
     let username = UserID_assoc.get(userID);
+    if (!username) throw new Error(`There is no nickname associated with UserID ${userID}`);
 
-    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('nickname')).innerText = username;
-    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('playerid')).innerText = '2';
-    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('ipaddress')).innerText = '';
-    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('userid')).innerText = userID;
-    /**@type {HTMLSpanElement} */ (window.document.getElementById('userinfo').children.namedItem('class')).innerText = this.classList[1]
+
+    (<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = username;
+    (<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '2';
+    (<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText = '';
+    (<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
+    (<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
 }
 
-/**
- * @this {HTMLInputElement}
- */
-function MakeTimeLine() {
-    window.document.getElementById('progress_bar').style.display = 'block'
-    window.document.getElementById('welcome').style.display = 'none'
-    window.document.getElementById('log_select').innerHTML = ''
-    window.document.getElementsByTagName('main')[0].innerHTML = ''
+function MakeTimeLine(this: HTMLInputElement) {
+    window.document.getElementById('progress_bar')!.style.display = 'block';
+    window.document.getElementById('welcome')!.style.display = 'none';
+    window.document.getElementById('log_select')!.innerHTML = '';
+    window.document.getElementsByTagName('main')[0]!.innerHTML = ''
+    
+    if (this.files == null) {
+        throw new Error("There was an error while loading files");
+    }
     for (let index = 0; index < this.files.length; index++) { // Generate file selector
         const li = window.document.createElement('li')
         // li.id=`file_selector_${index}` // 
@@ -431,22 +135,21 @@ function MakeTimeLine() {
         if (index == 0) {
             li.className = 'selected'
         }
-        window.document.getElementById('log_select').appendChild(li);
+        window.document.getElementById('log_select')?.appendChild(li);
     }
     timeline = new Array();
     console.clear()
     UserID_assoc.clear()
     IPaddress_assoc.clear()
     let progressbar_current = 0
-    window.document.getElementById('progress_bar').setAttribute('max', (this.files.length - 1).toString())
+    window.document.getElementById('progress_bar')?.setAttribute('max', (this.files.length - 1).toString())
 
-    
-    for (const [index, file] of /**@type {[number,File][]}*/(/**@type {[unknown, File][]}) */ (Object.entries(this.files)))) {
+    for (const [index, file] of (<Array<[number, File]>><Array<[unknown, File]>>Object.entries(this.files))) {
         console.log(`${index}: ${file}`)
         let filereader = new FileReader();
         filereader.addEventListener('load', () => { //WARNING: This is done in async way, note possible race conditions
 
-            // DOM CREATION
+            // DOM CREATION>
             const article = window.document.createElement('article');
 
             const table3114 = window.document.createElement('table');
@@ -482,11 +185,8 @@ function MakeTimeLine() {
                 admin_chat: false,
             }
             let lines = new Array();
-            /**
-             * @type {RegExpExecArray}
-             */
-            let log_line;
-            window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current++).toString())
+            let log_line: SLRegExpGroupsInterface | null;
+            window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
             console.debug(index)
             // document.getElementById('output').textContent = filereader.result;
@@ -505,7 +205,7 @@ function MakeTimeLine() {
                 if (element == "") {
                     return;
                 }
-                log_line = SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+                log_line = <SLRegExpGroupsInterface>SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
                 if (log_line == null) {
                     console.log(index)
                     console.log(admin_chat_log)
@@ -515,13 +215,13 @@ function MakeTimeLine() {
                     if (state.broadcast) {
 
                         //article.table.tbody.[last tr].[last td].textContent
-                        article.children[1].children[0].lastChild.lastChild.textContent += element
+                        (<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
                         return
                     }
                     if (state.admin_chat) {
-                        article.children[1].children[0].lastChild.lastChild.textContent += element
-                        admin_chat_log.appendChild(window.document.createTextNode(`${element}`))
-                        admin_chat_log.appendChild(document.createElement('br'))
+                        (<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
+                        admin_chat_log.appendChild(window.document.createTextNode(`${element}`));
+                        admin_chat_log.appendChild(document.createElement('br'));
                         return
                     }
                     throw new Error(`Error splitting ${element}`);
@@ -532,7 +232,6 @@ function MakeTimeLine() {
 
                 state.broadcast = false; // move to timeline
                 state.admin_chat = false;
-
                 {
                     log_line.groups["Timestamp"] = log_line.groups["Timestamp"].trim()
                     log_line.groups["Type"] = log_line.groups["Type"].trim()
@@ -551,28 +250,28 @@ function MakeTimeLine() {
                 switch (log_line.groups["Module"]) {
                     case "Administrative":
                         AdministativeHandle(log_line, state, admin_chat_log)
-                        img.src = "icons/shield.png"
+                        img.src = Icon.Administrative
                         break;
                     case "Logger":
                     case "Game logic":
                         LoggerHandle(log_line, tr, timeline[index])
-                        img.src = "icons/log.png"
+                        img.src = Icon.Log
                         break;
                     case "Class change":
                         ClassChangeHandle(log_line, tr, timeline[index], state, death_log, tbody3114)
-                        img.src = "icons/swap.png"
+                        img.src = Icon.Swap
                         break;
                     case "Warhead":
                         WarheadHandle(log_line, tr, timeline[index])
-                        img.src = "icons/nuclear-explosion.png"
+                        img.src = Icon.Warhead
                         break;
                     case "Networking":
                         NetworkingHandle(log_line, timeline[index])
-                        img.src = "icons/na.png"
+                        img.src = Icon.NA
                         break;
                     default:
                         console.info(`Module '${log_line.groups["Module"]}' requires implementation: ${log_line.groups["Message"]}`);
-                        img.src = "icons/na.png"
+                        img.src = Icon.NA
                         break;
                 }
 
@@ -604,7 +303,7 @@ function MakeTimeLine() {
             }
 
 
-            if (progressbar_current == this.files.length) {
+            if (progressbar_current == this.files?.length) {
                 if (Settings.alert_mode) {
                     if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
                         /*
@@ -623,8 +322,8 @@ function MakeTimeLine() {
                     }
                     for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
                         monitored_users.IPaddress.forEach(element => {
-                            let DatabaseIP = SLRegExp.SplitIP.exec(element)
-                            let PlayerIP = SLRegExp.SplitIP.exec(IPaddress)
+                            let DatabaseIP = <SLRegExpGroupsInterface | null>SLRegExp.SplitIP.exec(element)
+                            let PlayerIP = <SLRegExpGroupsInterface | null>SLRegExp.SplitIP.exec(IPaddress)
                             if (DatabaseIP != null && PlayerIP != null) {
                                 let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
                                 let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
@@ -659,48 +358,25 @@ function MakeTimeLine() {
                     }
                     window.document.getElementsByTagName('main')[0].appendChild(article)
                 }
-                window.document.getElementById('progress_bar').setAttribute('max', (this.files.length).toString())
-                window.document.getElementById('progress_bar').setAttribute('value', (progressbar_current).toString())
+                window.document.getElementById('progress_bar')?.setAttribute('max', (this.files.length).toString())
+                window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current).toString())
             }
         }, { once: true })
         filereader.readAsText(file)
     }
 }
 
-window.addEventListener('error', () => {
-    document.getElementById('error_bar').style.display = 'block';
-})
-if (indev) {
-    document.getElementById('warn_bar').style.display = 'block';
-}
-window.document.getElementById('version').innerText = `Version: ${version}`
-document.getElementById('fileInput').addEventListener('change', MakeTimeLine);
-
-/**
- * @param {any[]} new_lines
- * @param {HTMLTableRowElement} tr
- * @param {Timeline} timeline
- * @param {HTMLSpanElement} death_log
- * @param {HTMLTableSectionElement} tbody3114
- * @param {{ respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }} state
- */
-function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114) {
+function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
     // tr.classList.add("notable_death")
 
     //HIGH PRIORITY
-
-
-    /**
-     * @type {RegExpExecArray}
-     */
-    //DETONACJA WARHEAD
-    let regmatch
+    let regmatch: SLRegExpGroupsInterface
     if (SLRegExp.ClassChange.Ignore.test(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
         return
     }
 
-    if (regmatch = SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -713,7 +389,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     //LOW PRIORITY
 
     //KTOŚ KOGOŚ ZABIŁ
-    if (regmatch = SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -730,20 +406,20 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 
     //SAMOBÓJ
-    if (regmatch = SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
 
-        timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
-        timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
-        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
+        timeline.BackPropagatePlayerRole(regmatch.groups['UserID'], regmatch.groups['Role'])
+        timeline.AddPlayer(current_keyframe, regmatch.groups['UserID'], 'Spectator')
+        if (Role.IsSCP(timeline.TranslateToInternal(regmatch.groups['UserID']))) {
             tr.classList.add("notable_death")
         }
         return;
     }
     //ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
-    if (regmatch = SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
         console.debug(regmatch)
         let captured = false
         let current_keyframe = timeline.NewKeyFrame(new_lines[1])
@@ -782,7 +458,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 
     //TEAMKILL
-    if (regmatch = SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -798,7 +474,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 
     //SPAWN WAVE 1/2
-    if (regmatch = SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
         DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
         if (!state.respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
@@ -811,25 +487,25 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         return;
     }
     //SPAWN WAVE 2/2
-    if (regmatch = SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
         timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
         state.respawn_in_progress = false
         tr.classList.add("notable_death")
         return;
     }
     //FORCE CLASS
-    if (regmatch = SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
         timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
         return;
     }
-    if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
-            const Player3114 = timeline.FindPlayerWithRole("Scp3114")
-            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
-            tbody3114.style.display = 'inherit'
+            const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
+            (<HTMLTableColElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`;
+            tbody3114.style.display = 'inherit';
             if (Player3114 != null) {
-                state.is_3114_in_game = true
+                state.is_3114_in_game = true;
             }
         }
         console.log(tbody3114)
@@ -843,10 +519,10 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
         tbody3114.appendChild(tr)
         return;
     }
-    if (regmatch = SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
-            const Player3114 = timeline.FindPlayerWithRole("Scp3114")
-            tbody3114.firstChild.textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
+            const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
+            (<HTMLTableCellElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
             tbody3114.style.display = 'inherit'
             if (Player3114 != null) {
                 state.is_3114_in_game = true
@@ -870,12 +546,7 @@ function ClassChangeHandle(new_lines, tr, timeline, state, death_log, tbody3114)
     }
 }
 
-/**
- * @param {string[]} new_lines
- * @param {HTMLTableRowElement} tr
- * @param {Timeline} timeline
- */
-function LoggerHandle(new_lines, tr, timeline) {
+function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
     tr.classList.add("logger_event")
     if (new_lines[4].search(SLRegExp.Logger.Ignore) != -1) {
         console.debug(`Ignored ${new_lines[4]}`)
@@ -898,16 +569,8 @@ function LoggerHandle(new_lines, tr, timeline) {
     }
 }
 
-/**
- * @param {string[]} new_lines
- * @param {HTMLSpanElement} admin_chat_log
- * @param {{ respawn_in_progress: boolean; broadcast: boolean; admin_chat:boolean }} state
- */
-function AdministativeHandle(new_lines, state, admin_chat_log) {
-    /**
-     * @type {RegExpExecArray}
-     */
-    let regmatch
+function AdministativeHandle(new_lines: string[], state: { respawn_in_progress: boolean; broadcast: boolean; admin_chat: boolean; }, admin_chat_log: HTMLSpanElement) {
+    let regmatch: RegExpExecArray | null
     if (SLRegExp.Administrative.LobbyLock.test(new_lines[4]) || SLRegExp.Administrative.RoundLock.test(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
         return
@@ -937,23 +600,14 @@ function AdministativeHandle(new_lines, state, admin_chat_log) {
     }
 
 }
-/**
- * 
- * @param {HTMLSpanElement} death_log 
- * @param {string} death_log_text 
- */
-function DeathLogAttacher(death_log, death_log_text) {
+
+function DeathLogAttacher(death_log: HTMLSpanElement, death_log_text: string) {
     death_log.appendChild(window.document.createTextNode(death_log_text))
     death_log.appendChild(window.document.createElement('br'))
     return
 }
 
-/**
- * @param {string[]} new_lines
- * @param {HTMLTableRowElement} tr
- * @param {Timeline} timeline 
- */
-function WarheadHandle(new_lines, tr, timeline) {
+function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
     tr.classList.add("warhead_event")
     if (SLRegExp.Warhead.CountdownStart.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
@@ -975,42 +629,35 @@ function WarheadHandle(new_lines, tr, timeline) {
     }
 }
 
-/**
- * @param {string[]} new_lines
- * @param {Timeline} timeline 
- */
-function NetworkingHandle(new_lines, timeline) {
-    /**
-     * @type {RegExpExecArray}
-     */
-    let regmatch
+function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
+    let regmatch: SLRegExpGroupsInterface | null
 
-    if (regmatch = SLRegExp.Networking.Ignore.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
         return
     }
 
-    if (regmatch = SLRegExp.Networking.Nickname.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Nickname.exec(new_lines[4])) {
         UserID_assoc.set(regmatch[1], regmatch[2])
         return
     }
 
-    if (regmatch = SLRegExp.Networking.Preauth.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Preauth.exec(new_lines[4])) {
         //TODO: ALT DETECTION
         if (IPaddress_assoc.get(regmatch.groups["IPaddress"]) === undefined) {
-            IPaddress_assoc.set(regmatch.groups["IPaddress"],new Array())
+            IPaddress_assoc.set(regmatch.groups["IPaddress"], new Array())
         }
-        for (let index = 0; index < IPaddress_assoc.get(regmatch.groups["IPaddress"]).length; index++) {
-            const element = IPaddress_assoc.get(regmatch.groups["IPaddress"])[index];
+        for (let index = 0; index < (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"])).length; index++) {
+            const element = (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"]))[index];
             if (element == regmatch.groups["UserID"]) {
                 return // If user already exists, do not append
             }
         }
 
-        IPaddress_assoc.get(regmatch.groups["IPaddress"]).push(regmatch.groups["UserID"])
+        IPaddress_assoc.get(regmatch.groups["IPaddress"])?.push(regmatch.groups["UserID"])
         return
     }
-    if (regmatch = SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
+    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
         if (regmatch.groups["Role"] == "Destroyed") {
             return;
         }
@@ -1024,3 +671,18 @@ function NetworkingHandle(new_lines, timeline) {
         console.warn(`Could not parse Networking event.: ${new_lines[4]}`)
     }
 }
+
+window.document.getElementById('test')?.addEventListener('click', SelectPlayer)
+window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
+window.document.getElementById('settings')?.children.namedItem('updatesettings')?.addEventListener('click', Settings.RefreshSettings);
+window.addEventListener('error', () => {
+    (<HTMLDivElement>document.getElementById('error_bar')).style.display = 'block';
+})
+if (indev) {
+    (<HTMLDivElement>document.getElementById('warn_bar')).style.display = 'block';
+}
+(<HTMLSpanElement>window.document.getElementById('version')).innerText = `Version: ${version}`;
+document.getElementById('fileInput')?.addEventListener('change', MakeTimeLine);
+
+Settings.LoadSettings()
+Settings.ApplySettings()
