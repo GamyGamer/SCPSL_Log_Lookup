@@ -1,14 +1,14 @@
 import './style.css';
 import './roles.css';
 import { Icon } from './icons';
-import { SLRegExp, SLRegExpGroupsInterface } from './regex_rules';
+import { SLRegExp } from './regex_rules';
 import { Settings } from './settings';
 import { Role } from './role';
 import { Timeline } from './timeline';
 import './super_secret_settings';
 
 
-let version = "0.3.4-ts001"
+let version = "0.3.4-ts002"
 let indev = true
 /*
     Tytuł projektu: SCP:SL LOG PARSER
@@ -123,7 +123,7 @@ function MakeTimeLine(this: HTMLInputElement) {
     window.document.getElementById('welcome')!.style.display = 'none';
     window.document.getElementById('log_select')!.innerHTML = '';
     window.document.getElementsByTagName('main')[0]!.innerHTML = ''
-    
+
     if (this.files == null) {
         throw new Error("There was an error while loading files");
     }
@@ -185,7 +185,7 @@ function MakeTimeLine(this: HTMLInputElement) {
                 admin_chat: false,
             }
             let lines = new Array();
-            let log_line: SLRegExpGroupsInterface | null;
+            let log_line: SLRegExp | null;
             window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current++).toString())
             timeline[index] = new Timeline();
             console.debug(index)
@@ -205,7 +205,7 @@ function MakeTimeLine(this: HTMLInputElement) {
                 if (element == "") {
                     return;
                 }
-                log_line = <SLRegExpGroupsInterface>SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+                log_line = <SLRegExp>SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
                 if (log_line == null) {
                     console.log(index)
                     console.log(admin_chat_log)
@@ -322,8 +322,8 @@ function MakeTimeLine(this: HTMLInputElement) {
                     }
                     for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
                         monitored_users.IPaddress.forEach(element => {
-                            let DatabaseIP = <SLRegExpGroupsInterface | null>SLRegExp.SplitIP.exec(element)
-                            let PlayerIP = <SLRegExpGroupsInterface | null>SLRegExp.SplitIP.exec(IPaddress)
+                            let DatabaseIP = <SLRegExp | null>SLRegExp.SplitIP.exec(element)
+                            let PlayerIP = <SLRegExp | null>SLRegExp.SplitIP.exec(IPaddress)
                             if (DatabaseIP != null && PlayerIP != null) {
                                 let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
                                 let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
@@ -370,13 +370,13 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
     // tr.classList.add("notable_death")
 
     //HIGH PRIORITY
-    let regmatch: SLRegExpGroupsInterface
+    let regmatch: SLRegExp
     if (SLRegExp.ClassChange.Ignore.test(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
         return
     }
 
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
         let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
@@ -389,7 +389,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
     //LOW PRIORITY
 
     //KTOŚ KOGOŚ ZABIŁ
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -399,27 +399,27 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         timeline.AddKiller(current_keyframe, regmatch[3])
 
-        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
+        if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
             tr.classList.add("notable_death")
         }
         return;
     }
 
     //SAMOBÓJ
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
         DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
 
-        timeline.BackPropagatePlayerRole(regmatch.groups['UserID'], regmatch.groups['Role'])
+        timeline.BackPropagatePlayerRole(regmatch.groups['UserID'], regmatch.groups['UserRole'])
         timeline.AddPlayer(current_keyframe, regmatch.groups['UserID'], 'Spectator')
-        if (Role.IsSCP(timeline.TranslateToInternal(regmatch.groups['UserID']))) {
+        if (Role.IsSCP(Role.TranslateToInternal(regmatch.groups['UserRole']))) {
             tr.classList.add("notable_death")
         }
         return;
     }
     //ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
         console.debug(regmatch)
         let captured = false
         let current_keyframe = timeline.NewKeyFrame(new_lines[1])
@@ -448,7 +448,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
 
         timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
-        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2]))) {
+        if (Role.IsSCP(Role.TranslateToInternal(regmatch[2]))) {
             tr.classList.add("notable_death")
         }
         if (!captured) {
@@ -458,7 +458,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
     }
 
     //TEAMKILL
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
         DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
@@ -467,14 +467,14 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
         timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
         timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
         timeline.AddKiller(current_keyframe, regmatch[3])
-        if (Role.IsSCP(timeline.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(timeline.TranslateToInternal(regmatch[2])) && !Role.IsSCP(timeline.TranslateToInternal(regmatch[4])))) {
+        if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
             tr.classList.add("notable_death")
         }
         return;
     }
 
     //SPAWN WAVE 1/2
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
         DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
         if (!state.respawn_in_progress) { // Oznacz proces respawnu
             let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
@@ -487,19 +487,19 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
         return;
     }
     //SPAWN WAVE 2/2
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
-        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new_lines[1]
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
+        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new Date(new_lines[1])
         state.respawn_in_progress = false
         tr.classList.add("notable_death")
         return;
     }
     //FORCE CLASS
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
         let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
         timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
         return;
     }
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
             (<HTMLTableColElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`;
@@ -519,7 +519,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
         tbody3114.appendChild(tr)
         return;
     }
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
         if (!state.is_3114_in_game) {
             const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
             (<HTMLTableCellElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
@@ -554,7 +554,7 @@ function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Ti
     }
 
     if (SLRegExp.Logger.RoundStart.test(new_lines[4])) {
-        timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new_lines[1];
+        timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new Date(new_lines[1]);
         return
     }
     if (SLRegExp.Logger.RoundFinish.test(new_lines[4])) {
@@ -630,19 +630,19 @@ function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: T
 }
 
 function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
-    let regmatch: SLRegExpGroupsInterface | null
+    let regmatch: SLRegExp | null
 
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
         return
     }
 
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Nickname.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.Networking.Nickname.exec(new_lines[4])) {
         UserID_assoc.set(regmatch[1], regmatch[2])
         return
     }
 
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Preauth.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.Networking.Preauth.exec(new_lines[4])) {
         //TODO: ALT DETECTION
         if (IPaddress_assoc.get(regmatch.groups["IPaddress"]) === undefined) {
             IPaddress_assoc.set(regmatch.groups["IPaddress"], new Array())
@@ -657,7 +657,7 @@ function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
         IPaddress_assoc.get(regmatch.groups["IPaddress"])?.push(regmatch.groups["UserID"])
         return
     }
-    if (regmatch = <SLRegExpGroupsInterface>SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
+    if (regmatch = <SLRegExp>SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
         if (regmatch.groups["Role"] == "Destroyed") {
             return;
         }

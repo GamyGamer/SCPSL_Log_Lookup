@@ -1,4 +1,4 @@
-interface SLRegExpGroupsInterface extends RegExpExecArray {
+interface SLRegExp extends RegExpExecArray {
     groups: {
         'Timestamp': string;
         'Type': string;
@@ -22,7 +22,7 @@ class SLRegExp {
     static SplitIP = /^(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?$/
 
     static Administrative = {
-        AdminChat: /^\[(?<UserName>.+?)(?: \((?<UserID>.+?)\))?\] (?<Message>.+)$/, // TOFIX: Chat as SERVER CONSOLE
+        AdminChat: /^\[(?<UserName>.+)(?:(?<=\[SERVER CONSOLE)\]|(?: \((?<UserID>.+?)\))\]) (?<Message>.+)$/,
         RoundLock: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) round lock\.$/,
         LobbyLock: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) lobby lock\.$/,
         Broadcast: /^.+ \((?<UserID>.+)\) broadcast text ".+$/
@@ -74,4 +74,4 @@ class SLRegExp {
     } as const
 }
 
-export { SLRegExp, SLRegExpGroupsInterface }
+export { SLRegExp }

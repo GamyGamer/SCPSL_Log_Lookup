@@ -1,3 +1,7 @@
+import { Settings } from "./settings";
+
+type InternalRole = 'Scp173' | 'Scp106' | 'Scp049' | 'Scp079' | 'Scp096' | 'Scp0492' | 'Scp939' | 'Scp3114' | 'NtfSpecialist' | 'NtfSergeant' | 'NtfCaptain' | 'NtfPrivate' | 'FacilityGuard' | 'ChaosConscript' | 'ChaosRifleman' | 'ChaosMarauder' | 'ChaosRepressor' | 'Scientist' | 'ClassD' | 'Spectator' | 'Overwatch' | 'Filmmaker' | 'Tutorial' | 'Destroyed' | 'Spectator' | 'None' | 'UnknownRole_ReportToLogParserProgrammer'
+
 class Role {
     static Aligments = {
         SCP: ["Scp173", "Scp106", "Scp049", "Scp079", "Scp096", "Scp0492", "Scp939", "Scp3114"],
@@ -46,7 +50,7 @@ class Role {
         })
         return found
     }
-    static IsSCP(Role: string): boolean {
+    static IsSCP(Role: InternalRole): boolean {
         if (Role == undefined) {
             throw new Error("Role is undefined");
         }
@@ -58,6 +62,34 @@ class Role {
         })
         return found
     }
+    /**
+     * Converts translated roles to internal
+     */
+    static TranslateToInternal(role: string): InternalRole{
+        if (role == undefined) {
+            throw new Error("Unable to translate undefined role")
+        }
+        if (role == "None") {
+            console.warn("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
+            return "None"
+        }
+        if (role == "Destroyed") { // TODO: Can cause issue at the end of the round in the back propagation stage
+            return "Spectator"
+        }
+        for (const [internal, translated] of <Array<[InternalRole,string]>>Object.entries(Role.role_dictonary)) {
+
+            if (role == internal || role == translated) {
+                return internal
+            }
+        }
+        if (Settings.strict_mode) {
+            throw new Error(`Role "${role}" has no defined translation`)
+        }
+        else {
+            console.warn(`Role "${role}" has no defined translation`)
+        }
+        return "UnknownRole_ReportToLogParserProgrammer"
+    }
 }
 
-export { Role }
+export { Role,InternalRole }

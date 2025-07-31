@@ -12,6 +12,4 @@ class Icon {
     static Administrative = Administrative
     static Swap = Swap
 }
-
-
 export { Icon }

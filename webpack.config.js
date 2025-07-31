@@ -6,6 +6,7 @@ module.exports = {
     output: {
         filename: 'main.js',
         path: path.resolve(__dirname, 'dist'),
+        clean: true
     },
     module: {
         rules: [
@@ -19,13 +20,21 @@ module.exports = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                test: /\.(png|svg|jpg|jpeg|gif|webp)$/i,
                 type: 'asset/resource',
             },
+            {
+                test: /\.html$/,
+                exclude: /node_modules/,
+                use: `html-loader`
+            }
         ]
     },
-    devtool:'inline-source-map',
+    devtool: 'inline-source-map',
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
+    plugins: [
+        new HtmlWebpackPlugin({ template: './src/index.html' })
+    ]
 };

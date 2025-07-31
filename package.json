@@ -5,7 +5,6 @@
   "main": "script.ts",
   "private": "true",
   "scripts": {
-    "test": "node --test",
     "devmode": "webpack --mode development",
     "prodmode": "webpack --mode production"
   },
@@ -13,15 +12,25 @@
     "type": "git",
     "url": "git+https://github.com/GamyGamer/SCPSL_Log_Lookup.git"
   },
-  "keywords": ["parser","SCP:SL","Round Logs"],
+  "keywords": [
+    "parser",
+    "SCP:SL",
+    "Round Logs"
+  ],
   "author": "GamyGamer (Dominik Kudła)",
   "bugs": {
     "url": "https://github.com/GamyGamer/SCPSL_Log_Lookup/issues"
   },
   "homepage": "https://github.com/GamyGamer/SCPSL_Log_Lookup#readme",
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
+    "babel-jest": "^30.0.5",
     "css-loader": "^7.1.2",
+    "html-loader": "^5.1.0",
     "html-webpack-plugin": "^5.6.3",
+    "jest": "^30.0.5",
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",

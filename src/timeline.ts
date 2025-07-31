@@ -1,7 +1,8 @@
 import { Role } from "./role";
-import { Settings } from "./settings";
+import { Keyframe } from "./keyframe";
+import { User } from "./user";
 class Timeline {
-    keyframe: Array<any>
+    keyframe: Array<Keyframe>
     state = {
         respawn_in_progress: false,
         multiline_message: false
@@ -19,35 +20,6 @@ class Timeline {
         this.NewKeyFrame(null, 'round_start')
         this.state.multiline_message = false
         this.state.respawn_in_progress = false
-    }
-    /**
-     * Converts translated roles to internal
-     */
-    TranslateToInternal(role: string): string {
-        if (role == undefined) {
-            throw new Error("Unable to translate undefined role")
-        }
-        if (role == "None") {
-            console.warn("WARNING, ROLE NONE (POSSIBLE NULL PLAYER) DETECTED!!!")
-            return "None"
-        }
-        if (role == "Destroyed") { // TODO: Can cause issue at the end of the round in the back propagation stage
-            return "Spectator"
-        }
-        for (const [internal, translated] of Object.entries(Role.role_dictonary)) {
-
-            if (role == internal || role == translated) {
-                return internal
-            }
-        }
-        if (Settings.strict_mode) {
-            throw new Error(`Role "${role}" has no defined translation`)
-        }
-        else {
-            console.warn(`Role "${role}" has no defined translation`)
-        }
-        return "UnknownRole_ReportToLogParserProgrammer"
-        // throw new Error(`Role "${role}" has no defined translation`)
     }
     /**
      * Creates new keyframe with optional parameters
@@ -68,29 +40,23 @@ class Timeline {
         }
         this.keyframe[keyframe].event = event
     }
-    AddPlayer(keyframe: number, UserID: string, Role: string) {
+    AddPlayer(keyframe: number, UserID: string, role: string) {
         if (keyframe == null) {
             throw new Error("keyframe is null")
         }
         if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
             throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
         }
-        if (UserID == null) {
-            throw new Error("UserID is null")
-        }
-        if (Role == null) {
-            throw new Error("Role is null")
-        }
-        Role = this.TranslateToInternal(Role)
-        if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != Role) {
-            if (Role != 'Scp0492') { // Write as error
-                console.warn(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+        role = Role.TranslateToInternal(role)
+        if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != role) {
+            if (role != 'Scp0492') { // Write as error
+                console.warn(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${role}`)
             }
             else {
-                console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${Role}`)
+                console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${role}`)
             }
         }
-        this.keyframe[keyframe].player[UserID] = Role
+        this.keyframe[keyframe].player[UserID] = role
     }
     AddKiller(keyframe: number, userID: string) {
         if (keyframe == undefined) {
@@ -126,7 +92,7 @@ class Timeline {
     /**
      * Method to find newest keyframe index, passing Role and keyframe narrows searching 
      */
-    FindNewestPlayer(UserID: string, Role?: string, keyframe?: number): number {
+    FindNewestPlayer(UserID: User['ID'], role?: string, keyframe?: number): number {
         if (!this.PlayerExist(UserID)) {
             throw new Error(`Player ${UserID} Does not exists`)
         }
@@ -138,7 +104,7 @@ class Timeline {
             startfrom = keyframe
         }
 
-        if (Role == undefined) {
+        if (role == undefined) {
             for (let index = startfrom; index >= 0; index--) {
                 if (this.keyframe[index].player[UserID] != undefined) {
                     return index
@@ -146,14 +112,14 @@ class Timeline {
             }
         }
         else {
-            Role = this.TranslateToInternal(Role)
+            role = Role.TranslateToInternal(role)
             for (let index = startfrom; index >= 0; index--) {
-                if (this.keyframe[index].player[UserID] == Role) {
+                if (this.keyframe[index].player[UserID] == role) {
                     return index
                 }
             }
         }
-        throw new Error(`Unable to find player ${UserID} with ${Role} role`)
+        throw new Error(`Unable to find player ${UserID} with ${role} role`)
 
     }
     FindPlayerWithRole(role: string) {
