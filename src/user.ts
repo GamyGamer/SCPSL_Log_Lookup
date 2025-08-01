@@ -1,8 +1,8 @@
 // import { InternetProtocol } from "./internetprotocol";
 
-//This class should be the only one that stores `User` class as a whole, other modules that are dependent on User should store UserID only. Also it has to be unique
+//This class should be the only one that stores `User` class as a whole, other modules that are dependent on User should store UserID only. //TODO: Also it has to be unique
 class UserList {
-    UserList: Array<User>
+    private UserList: Array<User>
     constructor() {
         this.UserList = new Array();
     }
@@ -30,23 +30,31 @@ class UserList {
             throw new Error(`User with UserID:${user.ID} already exits and cannot be added`);
         }
     }
-
+    GetUser(userid: User['ID']): User {
+        return this.UserList[this.FindUser(userid)]
+    }
 }
 
 class User {
     ID: string;
-    nickname: Array<string>;
-    IP: Array<string>;
+    private nickname: Set<string>;
+    private IP: Set<string>; //TODO: This will be changed to some kind of InternetProtocol class/interface/types
     constructor(ID: string, nickname: string, IP: string) {
         this.ID = ID;
-        this.nickname = new Array(nickname);
-        this.IP = new Array(IP)
+        this.nickname = new Set([nickname]);
+        this.IP = new Set([IP])
     }
     AddNickname(nickname: string) {
-        this.nickname.push(nickname)
+        this.nickname.add(nickname)
     }
     AddIP(ip: string) {
-        this.IP.push(ip);
+        this.IP.add(ip);
+    }
+    GetNickname(): Set<string> {
+        return this.nickname
+    }
+    GetIP():Set<string>{
+        return this.IP;
     }
 }
 

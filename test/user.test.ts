@@ -33,18 +33,28 @@ describe('User', () => {
         expect(() => { listOfUsers.AddUser(new User('nieznany@gdzies', 'aaa', 'aaa')) }).toThrow(`User with UserID:nieznany@gdzies already exits and cannot be added`)
     })
     it('Should add new Nickname', () => {
-        listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].AddNickname('Paczkomat')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].nickname).not.toContain('aaa')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].nickname).toContain('Paczkomat')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].nickname).toContain('gamygamer#0')
+        listOfUsers.GetUser('306161751077158933@discord').AddNickname('Paczkomat')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetNickname()).not.toContain('aaa')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetNickname()).toContain('Paczkomat')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetNickname()).toContain('gamygamer#0')
     })
     it('Should add new IP', () => {
-        listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].AddIP('127.0.0.2')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].IP).not.toContain('127.0.0.3')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].IP).toContain('127.0.0.1')
-        expect(listOfUsers.UserList[listOfUsers.FindUser('306161751077158933@discord')].IP).toContain('127.0.0.2')
-    })
-    it.todo('IP and NICKNAME should be unique for a user')
-})
+        listOfUsers.GetUser('306161751077158933@discord').AddIP('127.0.0.2')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP()).not.toContain('127.0.0.3')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP()).toContain('127.0.0.1')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP()).toContain('127.0.0.2')
 
-console.log(listOfUsers)
+    })
+    it('Nickname should be unique',()=>{
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetNickname().size).toStrictEqual(2)
+        listOfUsers.GetUser('306161751077158933@discord').AddNickname('Paczkomat')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetNickname().size).toStrictEqual(2)
+    })
+    it('IP should be unique',()=>{
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP().size).toStrictEqual(2)
+        listOfUsers.GetUser('306161751077158933@discord').AddIP('127.0.0.3')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP().size).toStrictEqual(3)
+        listOfUsers.GetUser('306161751077158933@discord').AddIP('127.0.0.1')
+        expect(listOfUsers.GetUser('306161751077158933@discord').GetIP().size).toStrictEqual(3)
+    });
+});
