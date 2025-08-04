@@ -39,22 +39,53 @@ class User {
     ID: string;
     private nickname: Set<string>;
     private IP: Set<string>; //TODO: This will be changed to some kind of InternetProtocol class/interface/types
-    constructor(ID: string, nickname: string, IP: string) {
+    private group?: Set<string>
+    constructor(ID: string, nickname?: string, IP?: string, group?: string) {
         this.ID = ID;
-        this.nickname = new Set([nickname]);
-        this.IP = new Set([IP])
+        this.nickname = new Set();
+        this.IP = new Set()
+        if (nickname) {
+            this.nickname.add(nickname)
+        }
+        if (IP) {
+            this.IP.add(IP)
+        }
+        if (group) {
+            this.group = new Set([group])
+        }
     }
-    AddNickname(nickname: string) {
+    AddNickname(nickname: string):void {
         this.nickname.add(nickname)
     }
-    AddIP(ip: string) {
+    AddIP(ip: string):void {
         this.IP.add(ip);
     }
-    GetNickname(): Set<string> {
+    GetNicknames(): Set<string> {
         return this.nickname
     }
-    GetIP():Set<string>{
+    GetIPs(): Set<string> {
         return this.IP;
+    }
+    HasGroups():boolean {
+        if (this.group) {
+            return true
+        }
+        return false
+    }
+    AddGroup(groupName: string): void {
+        if (!this.HasGroups()) {
+            this.group = new Set();
+        }
+        this.group?.add(groupName)
+    }
+    GetGroups(): Set<string> {
+        if (this.group) {
+            return this.group;
+        }
+        else {
+            throw new Error(`User ${this.ID} does not have a group assigned`);
+
+        }
     }
 }
 

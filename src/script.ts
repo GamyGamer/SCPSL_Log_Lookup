@@ -5,10 +5,10 @@ import { SLRegExp } from './regex_rules';
 import { Settings } from './settings';
 import { Role } from './role';
 import { Timeline } from './timeline';
+import { UserList } from './user';
 import './super_secret_settings';
 
-
-let version = "0.3.4-ts002"
+let version = "0.3.4-ts004-Unstable"
 let indev = true
 /*
     Tytuł projektu: SCP:SL LOG PARSER
@@ -47,8 +47,7 @@ let indev = true
 */
 
 let timeline: Array<Timeline> = new Array();
-let UserID_assoc: Map<string, string> = new Map();
-let IPaddress_assoc: Map<string, Array<string>> = new Map();
+let Userlist = new UserList();
 const article_array: Array<HTMLElement> = new Array();
 
 
@@ -74,6 +73,8 @@ function FileSelector(this: HTMLLIElement) {
 }
 
 function CreateBadges() {
+    throw new Error("Not Implemented");
+
     const spectator_viewer = window.document.getElementById('spectator_badges')!
     spectator_viewer.innerHTML = ''
     //DOM CREATION
@@ -105,6 +106,7 @@ function CreateBadges() {
 }
 
 function SelectPlayer(this: HTMLDivElement) {
+    throw new Error("Not Implemented");
     let userID = this.getAttribute('userid');
     if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
     let username = UserID_assoc.get(userID);
@@ -119,6 +121,7 @@ function SelectPlayer(this: HTMLDivElement) {
 }
 
 function MakeTimeLine(this: HTMLInputElement) {
+    throw new Error("Not Implemented");
     window.document.getElementById('progress_bar')!.style.display = 'block';
     window.document.getElementById('welcome')!.style.display = 'none';
     window.document.getElementById('log_select')!.innerHTML = '';
@@ -368,6 +371,7 @@ function MakeTimeLine(this: HTMLInputElement) {
 
 function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
     // tr.classList.add("notable_death")
+    throw new Error("Not Implemented");
 
     //HIGH PRIORITY
     let regmatch: SLRegExp
@@ -488,7 +492,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
     }
     //SPAWN WAVE 2/2
     if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
-        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].timestamp = new Date(new_lines[1])
+        timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].SetTimestamp(new Date(new_lines[1]))
         state.respawn_in_progress = false
         tr.classList.add("notable_death")
         return;
@@ -547,6 +551,7 @@ function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timelin
 }
 
 function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
+    throw new Error("Not Implemented");
     tr.classList.add("logger_event")
     if (new_lines[4].search(SLRegExp.Logger.Ignore) != -1) {
         console.debug(`Ignored ${new_lines[4]}`)
@@ -554,7 +559,8 @@ function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Ti
     }
 
     if (SLRegExp.Logger.RoundStart.test(new_lines[4])) {
-        timeline.keyframe[timeline.FindNewestEventType('round_start')].timestamp = new Date(new_lines[1]);
+        console.error('Not Implemented')
+        // timeline.keyframe[timeline.FindNewestEventType('round_start')].SetTimestamp(new Date(new_lines[1]))
         return
     }
     if (SLRegExp.Logger.RoundFinish.test(new_lines[4])) {
@@ -570,6 +576,7 @@ function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Ti
 }
 
 function AdministativeHandle(new_lines: string[], state: { respawn_in_progress: boolean; broadcast: boolean; admin_chat: boolean; }, admin_chat_log: HTMLSpanElement) {
+    throw new Error("Not Implemented");
     let regmatch: RegExpExecArray | null
     if (SLRegExp.Administrative.LobbyLock.test(new_lines[4]) || SLRegExp.Administrative.RoundLock.test(new_lines[4])) {
         console.debug(`Ignored ${new_lines[4]}`)
@@ -602,12 +609,14 @@ function AdministativeHandle(new_lines: string[], state: { respawn_in_progress: 
 }
 
 function DeathLogAttacher(death_log: HTMLSpanElement, death_log_text: string) {
+    throw new Error("Not Implemented");
     death_log.appendChild(window.document.createTextNode(death_log_text))
     death_log.appendChild(window.document.createElement('br'))
     return
 }
 
 function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
+    throw new Error("Not Implemented");
     tr.classList.add("warhead_event")
     if (SLRegExp.Warhead.CountdownStart.test(new_lines[4])) {
         timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
@@ -630,6 +639,8 @@ function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: T
 }
 
 function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
+    throw new Error("Not Implemented");
+    
     let regmatch: SLRegExp | null
 
     if (regmatch = <SLRegExp>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
