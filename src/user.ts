@@ -1,6 +1,9 @@
 // import { InternetProtocol } from "./internetprotocol";
 
-//This class should be the only one that stores `User` class as a whole, other modules that are dependent on User should store UserID only. //TODO: Also it has to be unique
+/**
+ * This class should be the only one that stores `User` class as a whole, other modules that are dependent on User should store UserID only.
+ * TODO: Also it has to be unique
+ */
 class UserList {
     private UserList: Array<User>
     constructor() {
@@ -35,6 +38,9 @@ class UserList {
     }
 }
 
+/**
+ * This class stores specific user nickname, IP and group
+ */
 class User {
     ID: string;
     private nickname: Set<string>;
