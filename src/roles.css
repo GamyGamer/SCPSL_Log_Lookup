@@ -1,393 +1,393 @@
 div.spectator_badge {
-    --main-color: white;
-    --aux-color: color(from var(--main-color) srgb r g b /0.5);
-    background-color: rgb(37, 37, 37, 0.5);
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    box-sizing: border-box;
-    height: 40px;
-    width: 280px;
-    margin-bottom: 4px;
-    display: inline-block;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    transition: 0.3s;
+	--main-color: white;
+	--aux-color: color(from var(--main-color) srgb r g b /0.5);
+	background-color: rgb(37, 37, 37, 0.5);
+	border-top-left-radius: 20px;
+	border-bottom-left-radius: 20px;
+	box-sizing: border-box;
+	height: 40px;
+	width: 280px;
+	margin-bottom: 4px;
+	display: inline-block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	transition: 0.3s;
 
-    img {
-        float: left;
-        box-sizing: border-box;
-        width: 40px;
-        height: 40px;
-        margin-right: 10px;
-        border-radius: 20px;
-        border: 2px solid var(--main-color);
-        background-color: var(--aux-color);
-        content: url(icons/roles/UnknownIcon.png);
-    }
+	img {
+		float: left;
+		box-sizing: border-box;
+		width: 40px;
+		height: 40px;
+		margin-right: 10px;
+		border-radius: 20px;
+		border: 2px solid var(--main-color);
+		background-color: var(--aux-color);
+		content: url(icons/roles/UnknownIcon.png);
+	}
 
-    span.nickname {
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        color: gainsboro;
-        display: block;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        user-select: none;
-    }
+	span.nickname {
+		font-family: Verdana, Geneva, Tahoma, sans-serif;
+		color: gainsboro;
+		display: block;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		user-select: none;
+	}
 
-    span.role::before {
-        user-select: none;
-        content: "Unknown";
-    }
+	span.role::before {
+		user-select: none;
+		content: "Unknown";
+	}
 
-    span.role {
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        font-size: smaller;
-        padding-top: 2px;
-        color: var(--main-color);
-        display: block;
-    }
+	span.role {
+		font-family: Verdana, Geneva, Tahoma, sans-serif;
+		font-size: smaller;
+		padding-top: 2px;
+		color: var(--main-color);
+		display: block;
+	}
 }
 
 div.spectator_badge:active:hover.selected {
-    background-color: rgb(37, 37, 37, 1);
+	background-color: rgb(37, 37, 37, 1);
 }
 
 div.spectator_badge:active:hover {
-    background-color: rgb(37, 37, 37, 0.9);
+	background-color: rgb(37, 37, 37, 0.9);
 }
 
 div.spectator_badge:hover {
-    background-color: rgb(37, 37, 37, 0.8);
+	background-color: rgb(37, 37, 37, 0.8);
 }
 
 div.spectator_badge.selected {
-    background-color: rgb(37, 37, 37, 0.7);
-    border-right: 2px solid gray;
+	background-color: rgb(37, 37, 37, 0.7);
+	border-right: 2px solid gray;
 }
 
 div.spectator_badge.selected:hover {
-    background-color: rgb(37, 37, 37, 0.8);
+	background-color: rgb(37, 37, 37, 0.8);
 }
 
 
 
 div.spectator_badge.ClassD {
-    --main-color: #FF8E00;
+	--main-color: #FF8E00;
 
-    img {
-        content: url(icons/roles/ClassDIcon.png);
-    }
+	img {
+		content: url(icons/roles/ClassDIcon.png);
+	}
 
-    span.role::before {
-        content: "Class-D Personel";
-    }
+	span.role::before {
+		content: "Class-D Personel";
+	}
 }
 
 div.spectator_badge.Scientist {
-    --main-color: #FFFF7C;
+	--main-color: #FFFF7C;
 
-    img {
-        content: url(icons/roles/ScientistIcon.png);
-    }
+	img {
+		content: url(icons/roles/ScientistIcon.png);
+	}
 
-    span.role::before {
-        content: "Scientist";
-    }
+	span.role::before {
+		content: "Scientist";
+	}
 }
 
 div.spectator_badge.Scp173 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/173_Icon.png);
-    }
+	img {
+		content: url(icons/roles/173_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-173";
-    }
+	span.role::before {
+		content: "SCP-173";
+	}
 }
 
 div.spectator_badge.Scp106 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/106_Icon.png);
-    }
+	img {
+		content: url(icons/roles/106_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-106";
-    }
+	span.role::before {
+		content: "SCP-106";
+	}
 }
 
 div.spectator_badge.Scp049 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/049_Icon.png);
-    }
+	img {
+		content: url(icons/roles/049_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-049";
-    }
+	span.role::before {
+		content: "SCP-049";
+	}
 }
 
 div.spectator_badge.Scp0492 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/049-2_Icon.png);
-    }
+	img {
+		content: url(icons/roles/049-2_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-049-2";
-    }
+	span.role::before {
+		content: "SCP-049-2";
+	}
 }
 
 div.spectator_badge.Scp096 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/096_Icon.png);
-    }
+	img {
+		content: url(icons/roles/096_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-096";
-    }
+	span.role::before {
+		content: "SCP-096";
+	}
 }
 
 div.spectator_badge.Scp3114 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/3114_Icon.png);
-    }
+	img {
+		content: url(icons/roles/3114_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-3114";
-    }
+	span.role::before {
+		content: "SCP-3114";
+	}
 }
 
 div.spectator_badge.Scp079 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/079_Icon.png);
-    }
+	img {
+		content: url(icons/roles/079_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-079";
-    }
+	span.role::before {
+		content: "SCP-079";
+	}
 }
 
 div.spectator_badge.Scp939 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/939_Icon.png);
-    }
+	img {
+		content: url(icons/roles/939_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-939";
-    }
+	span.role::before {
+		content: "SCP-939";
+	}
 }
 
 div.spectator_badge.NtfSpecialist {
-    --main-color: #00D9FF;
+	--main-color: #00D9FF;
 
-    img {
-        content: url(icons/roles/MTFSergeantIcon.png);
-    }
+	img {
+		content: url(icons/roles/MTFSergeantIcon.png);
+	}
 
-    span.role::before {
-        content: "Nine-Tailed Fox Specialist";
-    }
+	span.role::before {
+		content: "Nine-Tailed Fox Specialist";
+	}
 }
 
 div.spectator_badge.NtfSergeant {
-    --main-color: #0096FF;
+	--main-color: #0096FF;
 
-    img {
-        content: url(icons/roles/MTFSergeantIcon.png);
-    }
+	img {
+		content: url(icons/roles/MTFSergeantIcon.png);
+	}
 
-    span.role::before {
-        content: "Nine-Tailed Fox Sergeant";
-    }
+	span.role::before {
+		content: "Nine-Tailed Fox Sergeant";
+	}
 }
 
 div.spectator_badge.NtfCaptain {
-    --main-color: #003DCA;
+	--main-color: #003DCA;
 
-    img {
-        content: url(icons/roles/MTFCaptainIcon.png);
-    }
+	img {
+		content: url(icons/roles/MTFCaptainIcon.png);
+	}
 
-    span.role::before {
-        content: "Nine-Tailed Fox Captain";
-    }
+	span.role::before {
+		content: "Nine-Tailed Fox Captain";
+	}
 }
 
 div.spectator_badge.NtfPrivate {
-    --main-color: #70C3FF;
+	--main-color: #70C3FF;
 
-    img {
-        content: url(icons/roles/MTFPrivateIcon.png);
-    }
+	img {
+		content: url(icons/roles/MTFPrivateIcon.png);
+	}
 
-    span.role::before {
-        content: "Nine-Tailed Fox Private";
-    }
+	span.role::before {
+		content: "Nine-Tailed Fox Private";
+	}
 }
 
 div.spectator_badge.FacilityGuard {
-    --main-color: #5B6370;
+	--main-color: #5B6370;
 
-    img {
-        content: url(icons/roles/GuardIcon.png);
-    }
+	img {
+		content: url(icons/roles/GuardIcon.png);
+	}
 
-    span.role::before {
-        content: "Facility Guard";
-    }
+	span.role::before {
+		content: "Facility Guard";
+	}
 }
 
 div.spectator_badge.ChaosConscript {
-    --main-color: #559101;
+	--main-color: #559101;
 
-    img {
-        content: url(icons/roles/ChaosIcon.png);
-    }
+	img {
+		content: url(icons/roles/ChaosIcon.png);
+	}
 
-    span.role::before {
-        content: "Chaos Insurgency Conscript";
-    }
+	span.role::before {
+		content: "Chaos Insurgency Conscript";
+	}
 }
 
 div.spectator_badge.ChaosRifleman {
-    --main-color: #008F1C;
+	--main-color: #008F1C;
 
-    img {
-        content: url(icons/roles/ChaosIcon.png);
-    }
+	img {
+		content: url(icons/roles/ChaosIcon.png);
+	}
 
-    span.role::before {
-        content: "Chaos Insurgency Rifleman";
-    }
+	span.role::before {
+		content: "Chaos Insurgency Rifleman";
+	}
 }
 
 div.spectator_badge.ChaosMarauder {
-    --main-color: #066328;
+	--main-color: #066328;
 
-    img {
-        content: url(icons/roles/ChaosIcon.png);
-    }
+	img {
+		content: url(icons/roles/ChaosIcon.png);
+	}
 
-    span.role::before {
-        content: "Chaos Insurgency Marauder";
-    }
+	span.role::before {
+		content: "Chaos Insurgency Marauder";
+	}
 }
 
 div.spectator_badge.ChaosRepressor {
-    --main-color: #15853D;
+	--main-color: #15853D;
 
-    img {
-        content: url(icons/roles/ChaosIcon.png);
-    }
+	img {
+		content: url(icons/roles/ChaosIcon.png);
+	}
 
-    span.role::before {
-        content: "Chaos Insurgency Repressor";
-    }
+	span.role::before {
+		content: "Chaos Insurgency Repressor";
+	}
 }
 
 div.spectator_badge.Spectator {
 
-    span.role::before {
-        content: "Spectator";
-    }
+	span.role::before {
+		content: "Spectator";
+	}
 }
 
 div.spectator_badge.Overwatch {
-    --main-color: #00FFFF;
+	--main-color: #00FFFF;
 
-    img {
-        content: url(icons/roles/OverwatchIcon.png);
-    }
+	img {
+		content: url(icons/roles/OverwatchIcon.png);
+	}
 
-    span.role::before {
-        content: "Overwatch";
-    }
+	span.role::before {
+		content: "Overwatch";
+	}
 }
 
 div.spectator_badge.Filmmaker {
-    --main-color: #3D3D3D;
+	--main-color: #3D3D3D;
 
-    img {
-        content: url(icons/roles/FilmmakerIcon.png);
-    }
+	img {
+		content: url(icons/roles/FilmmakerIcon.png);
+	}
 
-    span.role::before {
-        content: "Filmmaker";
-    }
+	span.role::before {
+		content: "Filmmaker";
+	}
 }
 
 div.spectator_badge.Tutorial {
-    --main-color: #F700FD;
+	--main-color: #F700FD;
 
-    img {
-        content: url(icons/roles/TutorialIcon.png);
-    }
+	img {
+		content: url(icons/roles/TutorialIcon.png);
+	}
 
-    span.role::before {
-        content: "Tutorial";
-    }
+	span.role::before {
+		content: "Tutorial";
+	}
 }
 
 div.spectator_badge.Scp1507 {
-    --main-color: #FF59CA;
+	--main-color: #FF59CA;
 
-    img {
-        content: url(icons/roles/1507_Icon.png);
-    }
+	img {
+		content: url(icons/roles/1507_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-1507";
-    }
+	span.role::before {
+		content: "SCP-1507";
+	}
 }
 
 div.spectator_badge.Scp1507Alpha {
-    --main-color: #E94CB7;
+	--main-color: #E94CB7;
 
-    img {
-        content: url(icons/roles/1507_Alpha_Icon.png);
-    }
+	img {
+		content: url(icons/roles/1507_Alpha_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-1507-Alpha";
-    }
+	span.role::before {
+		content: "SCP-1507-Alpha";
+	}
 }
 
 div.spectator_badge.Scp1507049 {
-    --main-color: #EC2222;
+	--main-color: #EC2222;
 
-    img {
-        content: url(icons/roles/1507_Zombie_Icon.png);
-    }
+	img {
+		content: url(icons/roles/1507_Zombie_Icon.png);
+	}
 
-    span.role::before {
-        content: "SCP-1507-049";
-    }
+	span.role::before {
+		content: "SCP-1507-049";
+	}
 }
 
 
 /* div.spectator_badge. {
-    --main-color: ;
+	--main-color: ;
 
-    img {
-        content: url(icons/roles/.png);
-    }
+	img {
+		content: url(icons/roles/.png);
+	}
 
-    span.role::before {
-        content: "";
-    }
+	span.role::before {
+		content: "";
+	}
 } */
