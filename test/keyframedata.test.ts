@@ -1,0 +1,63 @@
+import { beforeEach, describe, expect, it } from '@jest/globals';
+import { DeathEvent, RoundStartEvent } from '../src/keyframedata';
+import { EventType } from '../src/gameevent';
+
+
+describe('Create RoundStartEvent', () => {
+	let Event = new RoundStartEvent()
+	it('Should contain correct event_type', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.RoundStart)
+	})
+})
+
+describe('Create DeathEvent', () => {
+	describe('One Player', () => {
+		let Event: DeathEvent
+		beforeEach(() => {
+			Event = new DeathEvent('gamy@local', 'ClassD', 'died')
+		})
+		it('Should contain correct event_type', () => {
+			expect(Event.getEventType()).toStrictEqual(EventType.Specific.Death)
+		})
+		it('Should contain correct death_type', () => {
+			expect(Event.getDeathType()).toStrictEqual('died')
+		})
+		it('Should contain new role', () => {
+			expect(Event.player.get('gamy@local')).toStrictEqual('ClassD')
+		})
+		it('Should fail (technically never in this state)', () => {
+			Event.death_type='killed'
+			expect(() => { Event.getKillerMap() }).toThrow('Despite not having single type kill, Killer Map does not exists')
+
+		})
+
+	})
+	describe('Two Players', () => {
+		let Event: DeathEvent
+		beforeEach(() => {
+			Event = new DeathEvent('gamy@local', 'ClassD', 'killed', 'Killer', 'ChaosConscript')
+		})
+		it('Should contain correct event_type', () => {
+			expect(Event.getEventType()).toStrictEqual(EventType.Specific.Death)
+		})
+		it('Should contain correct death_type', () => {
+			expect(Event.getDeathType()).toStrictEqual('killed')
+		})
+		it('Should contain new role', () => {
+			expect(Event.getPlayerMap().get('gamy@local')).toStrictEqual('ClassD')
+		})
+		it('Should return Killer Map', () => {
+			expect(Event.getKillerMap()).toStrictEqual(new Map().set('Killer', 'ChaosConscript'))
+		})
+		it('Should fail (technically never in this state)', () => {
+			Event.death_type = 'died'
+			expect(() => { Event.getKillerMap() }).toThrow('Killer Map does not exist')
+		})
+	})
+
+	it('Should fail', () => {
+		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'killed', 'Evil@network') }).toThrow("Invalid construction of Death event, KillerID and KillerRole have to exist on death types that should contain killer data")
+		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'teamkilled') }).toThrow("Invalid construction of Death event, KillerID and KillerRole have to exist on death types that should contain killer data")
+		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'died', 'Evil@network', 'NtfSpecialist') }).toThrow("KillerID and KillerRole can't exist on death types that shouldn't contain killer data")
+	})
+})
