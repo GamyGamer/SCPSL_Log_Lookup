@@ -6,6 +6,7 @@ const TestData = {
 	UserID: ['306161751077158933@discord', '76561198163699391@steam', 'hubertmoszka@northwood'],
 	UserName: ['GamyGamer', 'Diagram [ERD]', 'Super gra (SL)', 'Gracz ze znakiem | bo tak '],
 	Message: ['Hejka', 'Test wiadomosci', ' <-- [(On wie)]', 'Uwaga ludzie (Wszyscy), Robimy | EVENT |!!! [Najlepsza osoba wygrywa (WSZYSTKO!)]'],
+	IP: ['192.168.0.1', '10.100.100.2:25565']
 }
 
 //Simulates a ServerLogsText used by HandleDeath (Specific death reason)
@@ -402,9 +403,48 @@ describe('ClassChange', () => {
 describe('Networking', () => {
 	let capture: SLRegExp | null
 	it.todo('Tests for Ignore')
-	it.todo('Tests for Preauth')
-	it.todo('Tests for Nickname')
-	it.todo('Tests for Disconnect')
+	TestData.IP.forEach(IP => {
+		it('Auth', () => {
+			capture = <SLRegExp>SLRegExp.Networking.Auth.exec(`gamy@localnetwork authenticated from endpoint ${IP}. Player ID assigned: 16. Auth token serial number: Testserial.`)
+			expect(capture.groups.UserID).toStrictEqual(`gamy@localnetwork`)
+			expect(capture.groups.IPaddress).toStrictEqual(`${IP.split(':')[0]}`)
+			expect(capture.groups.PlayerID).toStrictEqual(`16`)
+			expect(capture.groups.AuthSerial).toStrictEqual(`Testserial`)
+		})
+		it('Preauth', () => {
+			capture = <SLRegExp>SLRegExp.Networking.Preauth.exec(`gamy@localnetwork preauthenticated from endpoint ${IP} [routed via ${IP}].`)
+			expect(capture.groups.UserID).toStrictEqual(`gamy@localnetwork`)
+			expect(capture.groups.IPaddress).toStrictEqual(`${IP.split(':')[0]}`)
+			expect(capture.groups.RouteIP).toStrictEqual(`${IP}`)
+
+			capture = <SLRegExp>SLRegExp.Networking.Preauth.exec(`gamy@localnetwork preauthenticated from endpoint ${IP}.`)
+			expect(capture.groups.UserID).toStrictEqual(`gamy@localnetwork`)
+			expect(capture.groups.IPaddress).toStrictEqual(`${IP.split(':')[0]}`)
+		})
+	});
+	it('Test for Nickname', () => {
+		TestData.UserID.forEach(UserID => {
+			TestData.UserName.forEach(UserName => {
+				capture = <SLRegExp>SLRegExp.Networking.Nickname.exec(`Nickname of ${UserID} is now ${UserName}.`)
+				expect(capture.groups.UserID).toStrictEqual(UserID)
+				expect(capture.groups.UserName).toStrictEqual(UserName)
+			});
+		});
+	})
+
+	it('Tests for Disconnect', () => {
+		TestData.UserName.forEach(UserName => {
+			TestData.UserID.forEach(UserID => {
+				TestData.IP.forEach(IP => {
+					capture = <SLRegExp>SLRegExp.Networking.Disconnect.exec(`${UserName} (${UserID}) disconnected from IP address ${IP.split(':')[0]}. Last class: Tutorial.`)
+					expect(capture.groups.UserID).toStrictEqual(UserID)
+					expect(capture.groups.UserName).toStrictEqual(UserName)
+					expect(capture.groups.IPaddress).toStrictEqual(IP.split(':')[0])
+					expect(capture.groups.Role).toStrictEqual('Tutorial')
+				});
+			});
+		});
+	})
 })
 
 describe('Warhead', () => {

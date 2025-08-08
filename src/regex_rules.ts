@@ -21,6 +21,9 @@ interface SLRegExp extends RegExpExecArray {
 		'IssuerRole': string;
 		'IssuerName': string;
 		'Classifier': string;
+		'PlayerID': string;
+		'AuthSerial': string;
+		'RouteIP':string;
 	}
 }
 
@@ -50,9 +53,10 @@ class SLRegExp {
 	} as const
 	static Networking = {
 		Ignore: /(?:^.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.$)|(?:^Banned player .*? tried to connect from endpoint .*$)|(?:^.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\.$)/,
-		Preauth: /^(?<UserID>.*?) preauthenticated from endpoint (?<IPaddress>\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3})(?::\d{0,5})?(?: \[routed via .*?\])?\.$/,
-		Nickname: /^Nickname of (?<UserID>.+) is now (?<UserName>.+)\.$/,
-		Disconnect: /.* \((?<UserID>.*?)\) disconnected from IP address .*?\. Last class: (?<Role>.*?)\.$/
+		Preauth: /^(?<UserID>.*?) preauthenticated from endpoint (?<IPaddress>\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3})(?::\d{0,5})?(?: \[routed via (?<RouteIP>.+)\])?\.$/,
+		Auth: /^(?<UserID>.+?) authenticated from endpoint (?<IPaddress>\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3})(?::\d{1,5})?\. Player ID assigned: (?<PlayerID>\d+?)\. Auth token serial number: (?<AuthSerial>.+)\.$/,
+		Nickname: /^Nickname of (?<UserID>.+?) is now (?<UserName>.+)\.$/,
+		Disconnect: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) disconnected from IP address (?<IPaddress>.+?)\. Last class: (?<Role>.+)\.$/
 	} as const
 	static Warhead = {
 		Status: /^.+ \((?<UserID>.+)\) set the Alpha Warhead status to (?<State>.+)\.$/,
