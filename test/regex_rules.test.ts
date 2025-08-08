@@ -9,6 +9,9 @@ const TestData = {
 	IP: ['192.168.0.1', '10.100.100.2:25565']
 }
 
+//Need to write test for ALL possible username combination, it is controllable by user and more often than not it breaks everything
+
+
 //Simulates a ServerLogsText used by HandleDeath (Specific death reason)
 function* ServerLogsTextBuilder(AttackerNickname: string, CustomMessage?: string): Generator<string> {
 	const dict049 = ['Killed directly by SCP-049', 'Died to a heart-attack forced by SCP-049', 'Terminated by an instance of SCP-049-2'] as const
@@ -449,10 +452,27 @@ describe('Networking', () => {
 
 describe('Warhead', () => {
 	let capture: SLRegExp | null
-	it.todo('Tests for Status')
-	it.todo('Tests for CountdownStart')
-	it.todo('Tests for CountdownPaused')
-	it.todo('Tests for Detonated')
+	it('Detonated', () => {
+		capture = <SLRegExp>SLRegExp.Warhead.Detonated.exec('Warhead detonated.')
+		expect(capture).not.toBeNull()
+	})
+	it('Paused', () => {
+		capture = <SLRegExp>SLRegExp.Warhead.CountdownPaused.exec('Detonation cancelled.')
+		expect(capture).not.toBeNull()
+	})
+	it('Started', () => {
+		capture = <SLRegExp>SLRegExp.Warhead.CountdownStart.exec('Countdown started.')
+		expect(capture).not.toBeNull()
+	})
+	it('Status', () => {
+		TestData.UserName.forEach(UserName => {
+			capture = <SLRegExp>SLRegExp.Warhead.Status.exec(`${UserName} (gamygamer@local) set the Alpha Warhead status to True.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).toStrictEqual(UserName)
+			expect(capture.groups.UserID).toStrictEqual('gamygamer@local')
+			expect(capture.groups.State).toStrictEqual('True')
+		})
+	})
 })
 
 describe('Logger', () => {

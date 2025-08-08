@@ -59,7 +59,7 @@ class SLRegExp {
 		Disconnect: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) disconnected from IP address (?<IPaddress>.+?)\. Last class: (?<Role>.+)\.$/
 	} as const
 	static Warhead = {
-		Status: /^.+ \((?<UserID>.+)\) set the Alpha Warhead status to (?<State>.+)\.$/,
+		Status: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) set the Alpha Warhead status to (?<State>.+)\.$/,
 		CountdownStart: /^Countdown started\.$/,
 		CountdownPaused: /^Detonation cancelled\.$/,
 		Detonated: /^Warhead detonated\.$/
