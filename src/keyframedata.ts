@@ -2,7 +2,7 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | DeathEvent;
+type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent;
 
 abstract class BasicEvent {
 	abstract readonly event_type: EventType.Specific
@@ -10,9 +10,9 @@ abstract class BasicEvent {
 }
 
 interface PlayerRef {
-	//Map of user containing userID and new role
+	//Map of user containing userID and new role (From this point this user is this role)
 	player?: Map<User['ID'], InternalRole>
-	//User who is responsible  a class change via Remote admin
+	//User who is responsible for class change, Shows current role
 	killer?: Map<User['ID'], InternalRole>
 	//User who invoked a class change via Remote admin
 	issuer?: User['ID']
@@ -24,7 +24,7 @@ export class RoundStartEvent extends BasicEvent implements PlayerRef {
 	readonly player: Map<User['ID'], InternalRole>
 	constructor() {
 		super()
-		this.player = new Map()
+		this.player = new Map() // This will be our fallback for detected players mid round but still no official spawn 
 	}
 }
 
@@ -75,6 +75,36 @@ export class DeathEvent extends BasicEvent implements PlayerRef {
 				}
 				return this.killer
 		}
+	}
+}
+
+export class RespawnEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Respawn;
+	readonly player: Map<string, InternalRole>;
+	private team?: 'FoundationForces' | 'ChaosInsurgency'
+
+	constructor(UserID: User['ID'], Role: InternalRole, Team?: 'FoundationForces' | 'ChaosInsurgency') {
+		super()
+		this.player = new Map()
+		this.player.set(UserID, Role)
+		if (Team) {
+			this.team=Team
+		}
+	}
+	AddPlayer(UserID: User['ID'], Role: InternalRole) {
+		if (typeof this.player.get(UserID) != 'undefined') {
+			throw new Error("This player already exists");
+		}
+		this.player.set(UserID, Role)
+	}
+	GetPlayerMap(): Map<string, InternalRole> {
+		return this.player
+	}
+	GetTeam(): 'FoundationForces' | 'ChaosInsurgency' | undefined {
+		return this.team
+	}
+	SetTeam(Team: 'FoundationForces' | 'ChaosInsurgency') {
+		this.team = Team
 	}
 }
 

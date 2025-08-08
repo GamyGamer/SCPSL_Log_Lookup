@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { DeathEvent, RoundStartEvent } from '../src/keyframedata';
+import { DeathEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -59,5 +59,32 @@ describe('Create DeathEvent', () => {
 		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'killed', 'Evil@network') }).toThrow("Invalid construction of Death event, KillerID and KillerRole have to exist on death types that should contain killer data")
 		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'teamkilled') }).toThrow("Invalid construction of Death event, KillerID and KillerRole have to exist on death types that should contain killer data")
 		expect(() => { new DeathEvent('gamy@local', 'ClassD', 'died', 'Evil@network', 'NtfSpecialist') }).toThrow("KillerID and KillerRole can't exist on death types that shouldn't contain killer data")
+	})
+})
+
+describe('Create RespawnEvent',()=>{
+	let Event: RespawnEvent
+	beforeEach(()=>{
+		Event = new RespawnEvent('gamy@local','NtfPrivate')
+	})
+	it('Should return all players',()=>{
+		expect(Event.GetPlayerMap().size).toStrictEqual(1)
+		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
+		expect(Event.GetPlayerMap().get('Evil@network')).toBeUndefined()
+		Event.AddPlayer('Evil@network','ChaosRifleman')
+		expect(Event.GetPlayerMap().size).toStrictEqual(2)
+		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
+		expect(Event.GetPlayerMap().get('Evil@network')).toStrictEqual('ChaosRifleman')
+
+	})
+	it('Should handle teams',()=>{
+		let TempEvent = new RespawnEvent('gamy@local','NtfPrivate','FoundationForces')
+		expect(TempEvent.GetTeam()).toStrictEqual('FoundationForces')
+		TempEvent.SetTeam('ChaosInsurgency')
+		expect(TempEvent.GetTeam()).toStrictEqual('ChaosInsurgency')
+	})
+	it('Should fail',()=>{
+		expect(()=>{ Event.AddPlayer('gamy@local','ClassD') }).toThrow('This player already exists')
+		
 	})
 })

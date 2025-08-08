@@ -39,7 +39,8 @@ namespace EventType {
 		Door = 'door',
 		Ignored = "ignored",
 		RoundStart = 'round_start',
-		Suicide = 'suicide'
+		Suicide = 'suicide',
+		Respawn = 'respawn'
 	}
 }
 
