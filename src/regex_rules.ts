@@ -7,7 +7,7 @@ interface SLRegExp extends RegExpExecArray {
 		'CIDR': string;
 		'UserName': string;
 		'UserID': string;
-		'State': 'enabled' | 'disabled';
+		'State': 'enabled' | 'disabled' | 'opened' | 'closed';
 		'PermissionGroup': string;
 		'Reason': string;
 		'UserCount': string;
@@ -23,7 +23,8 @@ interface SLRegExp extends RegExpExecArray {
 		'Classifier': string;
 		'PlayerID': string;
 		'AuthSerial': string;
-		'RouteIP':string;
+		'RouteIP': string;
+		'DoorName': string;
 	}
 }
 
@@ -70,12 +71,7 @@ class SLRegExp {
 		RoundFinish: /^Round finished!.+\.$/,
 	} as const
 	static Door = {
-	} as const
-	static DeathReason = {
-		SCPIntentional: /playing as SCP.* (Unknown cause of death|Crushed|Tesla)\./,
-		Decayed: /Decayed in the Pocket Dimension/,
-		Recontained: /Recontained/,
-		Suicide: /Unknown cause of death|Fall damage|Crushed|Severed Hands from SCP-330|Tesla|Melted by a highly corrosive substance|SCP-207/
+		Change: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) (?<State>\w+?) (?<DoorName>.+?)(?: using (?<Type>.+))?\.$/
 	} as const
 }
 

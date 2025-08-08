@@ -487,13 +487,32 @@ describe('Logger', () => {
 
 describe('Door', () => {
 	let capture: SLRegExp | null
-	it.todo('TBD')
-})
+	it('Should capture correctly', () => {
+		TestData.UserName.forEach(UserName => {
+			capture = <SLRegExp>SLRegExp.Door.Change.exec(`${UserName} (gamy@local) opened GATE_A.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).not.toBeNull()
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.State).toStrictEqual('opened')
+			expect(capture.groups.DoorName).toStrictEqual('GATE_A')
+			expect(capture.groups.Type).toBeUndefined()
 
-describe('DeathReason', () => {
-	let capture: SLRegExp | null
-	it.todo('Tests for SCPIntentional')
-	it.todo('Tests for Decayed')
-	it.todo('Tests for Recontained')
-	it.todo('Tests for Suicide')
+			capture = <SLRegExp>SLRegExp.Door.Change.exec(`${UserName} (gamy@local) destroyed GATE_A using Grenade.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).not.toBeNull()
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.State).toStrictEqual('destroyed')
+			expect(capture.groups.DoorName).toStrictEqual('GATE_A')
+			expect(capture.groups.Type).toStrictEqual('Grenade')
+
+
+			capture = <SLRegExp>SLRegExp.Door.Change.exec(`${UserName} (gamy@local) destroyed unnamed door using ParticleDisruptor.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).not.toBeNull()
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.State).toStrictEqual('destroyed')
+			expect(capture.groups.DoorName).toStrictEqual('unnamed door')
+			expect(capture.groups.Type).toStrictEqual('ParticleDisruptor')
+		});
+	})
 })
