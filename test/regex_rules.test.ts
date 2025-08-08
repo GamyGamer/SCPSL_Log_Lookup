@@ -476,10 +476,13 @@ describe('Warhead', () => {
 })
 
 describe('Logger', () => {
-	let capture: SLRegExp | null
 	it.todo('Tests for Ignore')
-	it.todo('Tests for RoundStart')
-	it.todo('Tests for RoundFinish')
+	it('Round Start', () => {
+		expect(SLRegExp.Logger.RoundStart.test(`Round has been started.`)).toBeTruthy()
+	})
+	it('Tests for RoundFinish', () => {
+		expect(SLRegExp.Logger.RoundFinish.test(`Round finished! Anomalies: 0 | Chaos: 0 | Facility Forces: 14 | D escaped percentage: 0 | S escaped percentage: 0.`))
+	})
 })
 
 describe('Door', () => {

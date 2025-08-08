@@ -66,8 +66,8 @@ class SLRegExp {
 	} as const
 	static Logger = {
 		Ignore: /(?:Started logging\.)|(?:Game version:.+\.)|(?:Build type:.+\.)|(?:Build timestamp:.+\.)|(?:Headless:.+\.)/,
-		RoundStart: /^Round has been started\./,
-		RoundFinish: /^Round finished! Anomalies: (\d+)/,
+		RoundStart: /^Round has been started\.$/,
+		RoundFinish: /^Round finished!.+\.$/,
 	} as const
 	static Door = {
 	} as const
