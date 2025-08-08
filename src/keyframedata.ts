@@ -10,7 +10,7 @@ abstract class BasicEvent {
 }
 
 interface PlayerRef {
-	//Map of user containing userID and new role (From this point this user is this role)
+	//Map of user containing userID and new role (From this point this user IS this role, NO EXCEPTIONS! (Well... Maybe for plague doctor because he doesn't give info when someone turned))
 	player?: Map<User['ID'], InternalRole>
 	//User who is responsible for class change, Shows current role
 	killer?: Map<User['ID'], InternalRole>
@@ -88,7 +88,7 @@ export class RespawnEvent extends BasicEvent implements PlayerRef {
 		this.player = new Map()
 		this.player.set(UserID, Role)
 		if (Team) {
-			this.team=Team
+			this.team = Team
 		}
 	}
 	AddPlayer(UserID: User['ID'], Role: InternalRole) {
@@ -105,6 +105,45 @@ export class RespawnEvent extends BasicEvent implements PlayerRef {
 	}
 	SetTeam(Team: 'FoundationForces' | 'ChaosInsurgency') {
 		this.team = Team
+	}
+}
+
+export class ConnectionEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Connection;
+	private connection_type: 'Connected' | 'Disconnected'
+	readonly player: Map<User['ID'], InternalRole>
+	constructor(UserID: User['ID'], Type: 'Connected' | 'Disconnected') {
+		super()
+		this.player = new Map()
+		this.connection_type = Type
+		// When first joining assume role to be none, if it happened before round start keep as is, if after it can be edited when he gets referenced
+		// When disconnecting player loses it's role and is nothing. Technically after disconnection this shouldn't be able to be edited
+		this.player.set(UserID, 'None')
+	}
+	getConnectionType() {
+		return this.connection_type
+	}
+	getPlayerMap(): Map<User['ID'], InternalRole> {
+		return this.player
+	}
+	getPlayerRole(): InternalRole {
+		let Role = this.player.get(this.getPlayerID())
+		if (Role) {
+			return Role
+		}
+		throw new Error("Something went wrong when getting player role");
+	}
+	setPlayerRole(Role: InternalRole) {
+		this.player.set(this.getPlayerID(), Role)
+	}
+	getPlayerID(): User['ID'] {
+		let PlayerID = this.player.keys().next()
+		if (PlayerID.value) {
+			return PlayerID.value
+		}
+		else {
+			throw new Error(`Something went wrong when getting PlayerID`);
+		}
 	}
 }
 

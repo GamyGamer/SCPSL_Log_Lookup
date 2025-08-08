@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { DeathEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
+import { ConnectionEvent, DeathEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -26,7 +26,7 @@ describe('Create DeathEvent', () => {
 			expect(Event.player.get('gamy@local')).toStrictEqual('ClassD')
 		})
 		it('Should fail (technically never in this state)', () => {
-			Event.death_type='killed'
+			Event.death_type = 'killed'
 			expect(() => { Event.getKillerMap() }).toThrow('Despite not having single type kill, Killer Map does not exists')
 
 		})
@@ -62,29 +62,59 @@ describe('Create DeathEvent', () => {
 	})
 })
 
-describe('Create RespawnEvent',()=>{
+describe('Create RespawnEvent', () => {
 	let Event: RespawnEvent
-	beforeEach(()=>{
-		Event = new RespawnEvent('gamy@local','NtfPrivate')
+	beforeEach(() => {
+		Event = new RespawnEvent('gamy@local', 'NtfPrivate')
 	})
-	it('Should return all players',()=>{
+	it('Should return all players', () => {
 		expect(Event.GetPlayerMap().size).toStrictEqual(1)
 		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
 		expect(Event.GetPlayerMap().get('Evil@network')).toBeUndefined()
-		Event.AddPlayer('Evil@network','ChaosRifleman')
+		Event.AddPlayer('Evil@network', 'ChaosRifleman')
 		expect(Event.GetPlayerMap().size).toStrictEqual(2)
 		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
 		expect(Event.GetPlayerMap().get('Evil@network')).toStrictEqual('ChaosRifleman')
 
 	})
-	it('Should handle teams',()=>{
-		let TempEvent = new RespawnEvent('gamy@local','NtfPrivate','FoundationForces')
+	it('Should handle teams', () => {
+		let TempEvent = new RespawnEvent('gamy@local', 'NtfPrivate', 'FoundationForces')
 		expect(TempEvent.GetTeam()).toStrictEqual('FoundationForces')
 		TempEvent.SetTeam('ChaosInsurgency')
 		expect(TempEvent.GetTeam()).toStrictEqual('ChaosInsurgency')
 	})
+	it('Should fail', () => {
+		expect(() => { Event.AddPlayer('gamy@local', 'ClassD') }).toThrow('This player already exists')
+	})
+})
+
+describe('Create ConnectionEvent', () => {
+	let Con_Event: ConnectionEvent
+	let Disc_Event: ConnectionEvent
+	beforeEach(() => {
+		Con_Event = new ConnectionEvent('gamy@local', 'Connected')
+		Disc_Event = new ConnectionEvent('Evil@network', 'Disconnected')
+	})
+	it('Should return connection type',()=>{
+		expect(Con_Event.getConnectionType()).toStrictEqual('Connected')
+		expect(Disc_Event.getConnectionType()).toStrictEqual('Disconnected')
+	})
+	it('Should return userID',()=>{
+		expect(Con_Event.getPlayerID()).toStrictEqual('gamy@local')
+		expect(Disc_Event.getPlayerID()).toStrictEqual('Evil@network')
+	})
+	it('Should return playerRole',()=>{
+		expect(Con_Event.getPlayerRole()).toStrictEqual('None')
+		Con_Event.setPlayerRole('ClassD')
+		expect(Con_Event.getPlayerRole()).toStrictEqual('ClassD')
+	})
+	it('Should return PlayerMap',()=>{
+		expect(Con_Event.getPlayerMap()).toStrictEqual(new Map().set('gamy@local','None'))
+	})
 	it('Should fail',()=>{
-		expect(()=>{ Event.AddPlayer('gamy@local','ClassD') }).toThrow('This player already exists')
-		
+		let Test_Event = new ConnectionEvent(<any>undefined,<any>undefined)
+		expect(()=>{Test_Event.getPlayerID()}).toThrow('Something went wrong when getting PlayerID')
+		Con_Event.setPlayerRole(<any>undefined)
+		expect(()=>{Con_Event.getPlayerRole()}).toThrow('Something went wrong when getting player role')
 	})
 })

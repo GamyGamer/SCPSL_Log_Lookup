@@ -40,7 +40,8 @@ namespace EventType {
 		Ignored = "ignored",
 		RoundStart = 'round_start',
 		Suicide = 'suicide',
-		Respawn = 'respawn'
+		Respawn = 'respawn',
+		Connection = 'connection'
 	}
 }
 
