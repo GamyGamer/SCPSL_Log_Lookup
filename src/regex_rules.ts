@@ -39,13 +39,13 @@ class SLRegExp {
 
 	static ClassChange = {
 		Ignore: /^Player .+ \((?<UserID>.+)\) couldn't be added to spawn wave\. Err msg: (?<Reason>.+)\.$/,
-		ForceClass: /^.+ \((?<IssuerID>.+)\) changed role of player .+ \((?<AffectedID>.+)\) to (?<Role>.+)\.$/,
-		RespawnAs: /^Player .+ \((?<UserID>.+)\) respawned as (?<Role>.+).$/,
-		RespawnManager: /^(?:RespawnManager|WaveSpawner) has successfully spawned (?<UserCount>\d+) players as (?<Team>.+)!$/,
+		ForceClass: /^(?<IssuerName>.+?) \((?<IssuerID>[\w@]+?)\) changed role of player (?<UserName>.+?) \((?<UserID>[\w@]+?)\) to (?<Role>.+)\.$/,
+		RespawnAs: /^Player (?<UserName>.+?) \((?<UserID>[\w@]+?)\) respawned as (?<Role>.+)\.$/,
+		RespawnManager: /^(?:RespawnManager|WaveSpawner) has successfully spawned (?<UserCount>\d+?) players as (?<Team>.+)!$/,
 		Death: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\), playing as (?<UserRole>.+?), has (?:been |commited )?(?<Classifier>.+?)(?:(?<=died|suicide)\.| by (?<IssuerName>.+?) \((?<IssuerID>[\w@]+?)\) playing as: (?<IssuerRole>.+?)\.) Specific death reason: (?<Reason>.+)\.$/,
 		Skeleton: {
-			DisguiseSet: /is now impersonating (?<UserName>.+), playing as (?<Role>.+)\./,
-			DisguiseDrop: /is no longer disguised\./
+			DisguiseSet: /^is now impersonating (?<UserName>.+?), playing as (?<Role>.+)\.$/,
+			DisguiseDrop: /^is no longer disguised\.$/
 		} as const
 	} as const
 	static Networking = {

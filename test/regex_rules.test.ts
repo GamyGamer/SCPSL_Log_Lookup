@@ -10,14 +10,14 @@ const TestData = {
 
 //Simulates a ServerLogsText used by HandleDeath (Specific death reason)
 function* ServerLogsTextBuilder(AttackerNickname: string, CustomMessage?: string): Generator<string> {
-	let dict049 = ['Killed directly by SCP-049', 'Died to a heart-attack forced by SCP-049', 'Terminated by an instance of SCP-049-2'] as const
-	let dict096 = ["Got slapped by SCP-096's left hand", "Got slapped by SCP-096's right hand", "Stood in a line of SCP-096's charge", "Tried to pass through a gate being breached by SCP-096"] as const
-	let dict3114 = ['Strangulation', 'Slap', 'SkinSteal'] as const
-	let dict939 = ['None', 'Claw', 'LungeTarget', 'LungeSecondary'] as const
-	let weapontype = ['GunCOM15', 'MicroHID', 'GunE11SR', 'GunCrossvec', 'GunFSP9', 'GunLogicer', 'GunCOM18', 'GunRevolver', 'GunAK', 'GunShotgun', 'GunCom45', 'GunFRMG0', 'GunA7', 'GunSCP127'] as const
-	let hitboxtype = ['Body', 'Limb', 'Headshot'] as const
-	let MicroHIDFiringMode = ['PrimaryFire', 'ChargeFire', 'BrokenFire'] as const
-	let DeathTranslation = ['Recontained.', 'Vaporized by the Alpha Warhead.', 'Died to SCP-049.', 'Unknown cause of death.', 'Asphyxiated.', 'Bleeding.', 'Fall damage.', 'Decayed in the Pocket Dimension.', 'Melted by a highly corrosive substance.', 'Poison.', 'SCP-207.', 'Severed Hands from SCP-330.', 'Micro H.I.D.', 'Tesla.', 'Explosion.', 'Died to SCP-096.', 'Died to SCP-173.', 'Lunged by SCP-939.', 'Blunt trauma and minor scratches are present on the body.', 'Crushed.', 'Used as bait for SCP-106.', 'Automatically killed for friendly fire.', 'Died to hypothermia.', 'Died to a heart attack.', 'Died to SCP-939.', 'Blunt trauma and minor scratches are present on the body.', 'Killed by Marshmallow Man.', 'Died to SCP-1344.', 'Pecked by SCP-1507', 'Bullet wounds with organic residue.'] as const
+	const dict049 = ['Killed directly by SCP-049', 'Died to a heart-attack forced by SCP-049', 'Terminated by an instance of SCP-049-2'] as const
+	const dict096 = ["Got slapped by SCP-096's left hand", "Got slapped by SCP-096's right hand", "Stood in a line of SCP-096's charge", "Tried to pass through a gate being breached by SCP-096"] as const
+	const dict3114 = ['Strangulation', 'Slap', 'SkinSteal'] as const
+	const dict939 = ['None', 'Claw', 'LungeTarget', 'LungeSecondary'] as const
+	const weapontype = ['GunCOM15', 'MicroHID', 'GunE11SR', 'GunCrossvec', 'GunFSP9', 'GunLogicer', 'GunCOM18', 'GunRevolver', 'GunAK', 'GunShotgun', 'GunCom45', 'GunFRMG0', 'GunA7', 'GunSCP127'] as const
+	const hitboxtype = ['Body', 'Limb', 'Headshot'] as const
+	const MicroHIDFiringMode = ['PrimaryFire', 'ChargeFire', 'BrokenFire'] as const
+	const DeathTranslation = ['Recontained.', 'Vaporized by the Alpha Warhead.', 'Died to SCP-049.', 'Unknown cause of death.', 'Asphyxiated.', 'Bleeding.', 'Fall damage.', 'Decayed in the Pocket Dimension.', 'Melted by a highly corrosive substance.', 'Poison.', 'SCP-207.', 'Severed Hands from SCP-330.', 'Micro H.I.D.', 'Tesla.', 'Explosion.', 'Died to SCP-096.', 'Died to SCP-173.', 'Lunged by SCP-939.', 'Blunt trauma and minor scratches are present on the body.', 'Crushed.', 'Used as bait for SCP-106.', 'Automatically killed for friendly fire.', 'Died to hypothermia.', 'Died to a heart attack.', 'Died to SCP-939.', 'Blunt trauma and minor scratches are present on the body.', 'Killed by Marshmallow Man.', 'Died to SCP-1344.', 'Pecked by SCP-1507', 'Bullet wounds with organic residue.'] as const
 
 	// PlayerRoles.PlayableScps.Scp1507.Scp1507DamageHandler.get_ServerLogsText() : string @06001D3A
 	yield `Pecked by ${AttackerNickname}`
@@ -345,15 +345,58 @@ describe('ClassChange', () => {
 		// 	})
 		// })
 	})
-	it.todo('Tests for Ignore')
-	it.todo('Tests for ForceClass')
-	it.todo('Tests for RespawnAs')
-	it.todo('Tests for RespawnManager')
-	it.todo('Tests for Warhead')
-	describe('Skeleton', () => {
-		it.todo('Tests for DisguiseSet')
-		it.todo('Tests for DisguiseDrop')
+	describe('ForceClass', () => {
+		TestData.UserName.forEach(UserName => {
+			TestData.UserName.forEach(IssuerName => {
+				TestData.UserID.forEach(UserID => {
+					Object.keys(Role.role_dictonary).forEach(Role => {
+						it('Should resolve to original data', () => {
+							capture = <SLRegExp>SLRegExp.ClassChange.ForceClass.exec(`${IssuerName} (${UserID}) changed role of player ${UserName} (${UserID}) to ${Role}.`)
+							expect(capture.groups.UserName).toStrictEqual(UserName)
+							expect(capture.groups.UserID).toStrictEqual(UserID)
+							expect(capture.groups.IssuerName).toStrictEqual(IssuerName)
+							expect(capture.groups.IssuerID).toStrictEqual(UserID)
+							expect(capture.groups.Role).toStrictEqual(Role)
+						})
+					});
+				});
+			});
+		});
 	})
+
+	describe('Respawning', () => {
+		TestData.UserName.forEach(UserName => {
+			it('Tests for RespawnAs', () => {
+				capture = <SLRegExp>SLRegExp.ClassChange.RespawnAs.exec(`Player ${UserName} (${TestData.UserID[0]}) respawned as NtfCaptain.`)
+				expect(capture.groups.UserName).toStrictEqual(UserName)
+				expect(capture.groups.UserID).toStrictEqual(TestData.UserID[0])
+				expect(capture.groups.Role).toStrictEqual('NtfCaptain')
+			})
+		})
+		it('Tests for Wavespawner', () => {
+			capture = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(`WaveSpawner has successfully spawned 5 players as FoundationForces!`)
+			expect(capture.groups.UserCount).toStrictEqual('5')
+			capture = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(`RespawnManager has successfully spawned 100 players as FoundationForces!`)
+			expect(capture.groups.UserCount).toStrictEqual('100')
+		})
+
+	})
+	describe('Skeleton', () => {
+		TestData.UserName.forEach(UserName => {
+			it('Tests for DisguiseSet', () => {
+				capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(`is now impersonating ${UserName}, playing as Nine-Tailed Fox Private.`)
+				expect(capture.groups.UserName).toStrictEqual(UserName)
+				expect(capture.groups.Role).toStrictEqual('Nine-Tailed Fox Private')
+
+			})
+
+		});
+		it('Tests for DisguiseDrop', () => {
+			capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(`is no longer disguised.`);
+		})
+
+	})
+	it.todo('Tests for Ignore')
 })
 
 describe('Networking', () => {
