@@ -2,7 +2,7 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent;
+type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent;
 
 abstract class BasicEvent {
 	abstract readonly event_type: EventType.Specific
@@ -226,6 +226,62 @@ export class ThrowableEvent extends BasicEvent implements PlayerRef {
 			return this.statusEffect!
 		}
 		throw new Error("StatusEffect does not exists on non using action");
+	}
+}
+
+type WarheadType = 'set' | 'started' | 'cancelled' | 'detonated';
+
+//This event is somewhat complitated
+//Players can set it's state to true or false
+//Actual detonation is denoted from `Warhead detonated, cancelled, started
+//Players can interact with controller but it doesn't always react (spamming start, stop button)
+//Above rule technically happens after main detonation log
+//When detonated it also stores players that died to Warhead Detonation
+
+export class WarheadEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Warhead;
+	player?: Map<User['ID'], InternalRole>;
+	issuer?: User['ID'];
+	private warhead_type: WarheadType
+	private warhead_state?: 'False' | 'True'
+	constructor(Type: WarheadType, userID?: User['ID'], warheadState?: 'False' | 'True') {
+		super()
+		this.warhead_type = Type
+		if (typeof userID != 'undefined') {
+			this.issuer = userID
+			if (typeof warheadState == 'string') {
+				if (Type != 'set') { throw new Error('Warhead needs to have "set" action in order to have warheadState') }
+				this.warhead_state = warheadState;
+			}
+		}
+		if (Type == 'set' && (typeof warheadState == 'undefined')) {
+			throw new Error("Unable to create set WarheadEvent when warheadState is undefined");
+
+		}
+	}
+	getWarheadType(): WarheadType {
+		return this.warhead_type
+	}
+	AddKilledPlayer(UserID: User['ID']): void {
+		if (this.warhead_type != 'detonated') { throw new Error('Warhead must be detonated in order to assign killed players') }
+		if (typeof this.player == 'undefined') { this.player = new Map() }
+		this.player.set(UserID, 'Spectator')
+	}
+	getPlayerMap(): Map<User['ID'], InternalRole> {
+		if (this.warhead_type != 'detonated') { throw new Error('Warhead must be detonated in order to get killed players') }
+		if (typeof this.player == 'undefined') { this.player = new Map() }
+		return this.player
+	}
+	getIssuer(): User['ID'] | undefined {
+		return this.issuer
+	}
+	setIssuer(UserID: User['ID']) {
+		this.issuer = UserID
+	}
+	getState(): 'False' | 'True' {
+		if (this.warhead_type != 'set') { throw new Error('Warhead must be set in order to have state') }
+		if (typeof this.warhead_state != 'undefined') return this.warhead_state
+		throw new Error('An error occured when getting warhead state')
 	}
 }
 

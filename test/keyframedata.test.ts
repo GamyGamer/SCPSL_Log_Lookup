@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent, ThrowableEvent } from '../src/keyframedata';
+import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent, ThrowableEvent, WarheadEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -167,5 +167,48 @@ describe('Create ThrowableEvent', () => {
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', undefined) }).toThrow('statusEffect is undefined')
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', undefined, 'deafened') }).toThrow('AffectedID is undefined')
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', 'deafened') }).toThrow('AffectedID and statusEffect cannot exist in event that stores throwing item only')
+	})
+})
+
+describe('Create WarheadEvent', () => {
+	let WarheadStart: WarheadEvent
+	let WarheadDetonated: WarheadEvent
+	let WarheadSet: WarheadEvent
+	beforeEach(() => {
+		WarheadStart = new WarheadEvent('started')
+		WarheadSet = new WarheadEvent('set', 'gamy@local', 'False')
+		WarheadDetonated = new WarheadEvent('detonated')
+	})
+	it('Should return correct data', () => {
+		expect(WarheadStart.getEventType()).toStrictEqual(EventType.Specific.Warhead)
+		expect(WarheadStart.getWarheadType()).toStrictEqual('started')
+		expect(WarheadStart.getIssuer()).toBeUndefined()
+		expect(WarheadSet.getIssuer()).toStrictEqual('gamy@local')
+		expect(WarheadSet.getState()).toStrictEqual('False')
+	})
+	it('Should add and read data', () => {
+		expect(WarheadDetonated.getPlayerMap()).toStrictEqual(new Map())
+		WarheadDetonated.AddKilledPlayer('evil@network')
+		expect(WarheadDetonated.getPlayerMap()).toStrictEqual(new Map().set('evil@network', 'Spectator'))
+	})
+	it('Should add and read data [Add w/o checking]', () => {
+		WarheadDetonated.AddKilledPlayer('evil@network')
+		expect(WarheadDetonated.getPlayerMap()).toStrictEqual(new Map().set('evil@network', 'Spectator'))
+	})
+	it('Should set issuer', () => {
+		expect(WarheadStart.getIssuer()).toBeUndefined()
+		WarheadStart.setIssuer('gamy@local')
+		expect(WarheadStart.getIssuer()).toStrictEqual('gamy@local')
+	})
+	it('Should fail', () => {
+		expect(() => { new WarheadEvent('started', 'gamy@local', 'True') }).toThrow('Warhead needs to have "set" action in order to have warheadState')
+		expect(() => { WarheadStart.AddKilledPlayer('evil@network') }).toThrow('Warhead must be detonated in order to assign killed players')
+		expect(() => { WarheadStart.getPlayerMap() }).toThrow('Warhead must be detonated in order to get killed players')
+		expect(() => { WarheadDetonated.getState() }).toThrow('Warhead must be set in order to have state')
+		expect(() => { new WarheadEvent('set', 'gamy@local') }).toThrow('Unable to create set WarheadEvent when warheadState is undefined')
+		const invalidEvent = new WarheadEvent('set', 'gamy@local', 'False')
+		//@ts-expect-error
+		invalidEvent.warhead_state = undefined
+		expect(() => { invalidEvent.getState() }).toThrow('An error occured when getting warhead state')
 	})
 })
