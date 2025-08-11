@@ -2,7 +2,7 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent;
+type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent;
 
 abstract class BasicEvent {
 	abstract readonly event_type: EventType.Specific
@@ -144,6 +144,43 @@ export class ConnectionEvent extends BasicEvent implements PlayerRef {
 		else {
 			throw new Error(`Something went wrong when getting PlayerID`);
 		}
+	}
+}
+
+type DoorState = 'destroyed' | 'opened' | 'closed';
+
+export class DoorEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Door;
+	readonly issuer: User['ID'];
+	private doorName: string;
+	private doorState: DoorState;
+	private destructionType?: string;
+	constructor(userID: User['ID'], doorName: string, doorState: DoorState, destructionType?: string) {
+		super();
+		this.issuer = userID;
+		this.doorName = doorName;
+		this.doorState = doorState
+		if (doorState == 'destroyed' && (typeof destructionType == 'string')) {
+			this.destructionType = destructionType
+		}
+		else if (doorState != 'destroyed' && (typeof destructionType == 'string')) {
+			throw new Error(`Unable to assign destructionType when doorState is ${doorState} [destroyed only]`);
+		}
+	}
+	getDoorName(): string {
+		return this.doorName
+	}
+	getDoorState(): DoorState {
+		return this.doorState
+	}
+	getDoorDestructionType(): string {
+		if (typeof this.destructionType == 'undefined') {
+			throw new Error("destructionType is undefined");
+		}
+		return this.destructionType
+	}
+	isDestroyed(): boolean {
+		return this.doorState == 'destroyed'
 	}
 }
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ConnectionEvent, DeathEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
+import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -95,26 +95,48 @@ describe('Create ConnectionEvent', () => {
 		Con_Event = new ConnectionEvent('gamy@local', 'Connected')
 		Disc_Event = new ConnectionEvent('Evil@network', 'Disconnected')
 	})
-	it('Should return connection type',()=>{
+	it('Should return connection type', () => {
 		expect(Con_Event.getConnectionType()).toStrictEqual('Connected')
 		expect(Disc_Event.getConnectionType()).toStrictEqual('Disconnected')
 	})
-	it('Should return userID',()=>{
+	it('Should return userID', () => {
 		expect(Con_Event.getPlayerID()).toStrictEqual('gamy@local')
 		expect(Disc_Event.getPlayerID()).toStrictEqual('Evil@network')
 	})
-	it('Should return playerRole',()=>{
+	it('Should return playerRole', () => {
 		expect(Con_Event.getPlayerRole()).toStrictEqual('None')
 		Con_Event.setPlayerRole('ClassD')
 		expect(Con_Event.getPlayerRole()).toStrictEqual('ClassD')
 	})
-	it('Should return PlayerMap',()=>{
-		expect(Con_Event.getPlayerMap()).toStrictEqual(new Map().set('gamy@local','None'))
+	it('Should return PlayerMap', () => {
+		expect(Con_Event.getPlayerMap()).toStrictEqual(new Map().set('gamy@local', 'None'))
 	})
-	it('Should fail',()=>{
-		let Test_Event = new ConnectionEvent(<any>undefined,<any>undefined)
-		expect(()=>{Test_Event.getPlayerID()}).toThrow('Something went wrong when getting PlayerID')
+	it('Should fail', () => {
+		let Test_Event = new ConnectionEvent(<any>undefined, <any>undefined)
+		expect(() => { Test_Event.getPlayerID() }).toThrow('Something went wrong when getting PlayerID')
 		Con_Event.setPlayerRole(<any>undefined)
-		expect(()=>{Con_Event.getPlayerRole()}).toThrow('Something went wrong when getting player role')
+		expect(() => { Con_Event.getPlayerRole() }).toThrow('Something went wrong when getting player role')
+	})
+})
+
+describe('Create DoorEvent', () => {
+	let Event: DoorEvent
+	beforeEach(() => {
+		Event = new DoorEvent('gamy@local', '914', 'opened')
+	})
+	it('Should return correct door states', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.Door)
+		expect(Event.getDoorName()).toStrictEqual('914')
+		expect(Event.getDoorState()).toStrictEqual('opened')
+		expect(Event.isDestroyed()).toBeFalsy()
+	})
+	it('Should fail', () => {
+		expect(() => { Event.getDoorDestructionType() }).toThrow('destructionType is undefined')
+		expect(() => { new DoorEvent('gamy@local', '914', 'closed', 'Grenade') }).toThrow('Unable to assign destructionType when doorState is closed [destroyed only]')
+
+	})
+	it('Should check door with destruction mode', () => {
+		Event = new DoorEvent('gamy@local', '914', 'destroyed', 'Grenade')
+		expect(Event.getDoorDestructionType()).toStrictEqual('Grenade')
 	})
 })
