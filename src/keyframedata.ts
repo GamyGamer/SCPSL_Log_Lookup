@@ -30,12 +30,14 @@ export class RoundStartEvent extends BasicEvent implements PlayerRef {
 	}
 }
 
+type DeathType = 'died' | 'suicide' | 'killed' | 'teamkilled';
+
 export class DeathEvent extends BasicEvent implements PlayerRef {
 	readonly event_type = EventType.Specific.Death;
-	death_type: string
+	death_type: DeathType
 	readonly player: Map<User['ID'], InternalRole>;
 	killer?: Map<User['ID'], InternalRole>;
-	constructor(playerID: User['ID'], playerRole: InternalRole, deathType: string, killerID?: User['ID'], killerRole?: InternalRole) {
+	constructor(playerID: User['ID'], playerRole: InternalRole, deathType: DeathType, killerID?: User['ID'], killerRole?: InternalRole) {
 		super();
 		this.player = new Map()
 		this.player.set(playerID, playerRole);
