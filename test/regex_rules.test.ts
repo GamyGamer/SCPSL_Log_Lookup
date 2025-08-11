@@ -388,15 +388,19 @@ describe('ClassChange', () => {
 	describe('Skeleton', () => {
 		TestData.UserName.forEach(UserName => {
 			it('Tests for DisguiseSet', () => {
-				capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(`is now impersonating ${UserName}, playing as Nine-Tailed Fox Private.`)
+				capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.exec(`is now impersonating ${UserName}, playing as Nine-Tailed Fox Private.`)
+				expect(capture).not.toBeNull()
+				expect(capture.groups.State).toStrictEqual('now')
 				expect(capture.groups.UserName).toStrictEqual(UserName)
 				expect(capture.groups.Role).toStrictEqual('Nine-Tailed Fox Private')
-
 			})
-
 		});
 		it('Tests for DisguiseDrop', () => {
-			capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(`is no longer disguised.`);
+			capture = <SLRegExp>SLRegExp.ClassChange.Skeleton.exec(`is no longer disguised.`);
+			expect(capture).not.toBeNull()
+			expect(capture.groups.State).toStrictEqual('no')
+			expect(capture.groups.UserName).toBeUndefined()
+			expect(capture.groups.Role).toBeUndefined()
 		})
 
 	})

@@ -51,10 +51,7 @@ class SLRegExp {
 		RespawnAs: /^Player (?<UserName>.+?) \((?<UserID>[\w@]+?)\) respawned as (?<Role>.+)\.$/,
 		RespawnManager: /^(?:RespawnManager|WaveSpawner) has successfully spawned (?<UserCount>\d+?) players as (?<Team>.+)!$/,
 		Death: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\), playing as (?<UserRole>.+?), has (?:been |commited )?(?<Classifier>.+?)(?:(?<=died|suicide)\.| by (?<IssuerName>.+?) \((?<IssuerID>[\w@]+?)\) playing as: (?<IssuerRole>.+?)\.) Specific death reason: (?<Reason>.+)\.$/,
-		Skeleton: {
-			DisguiseSet: /^is now impersonating (?<UserName>.+?), playing as (?<Role>.+)\.$/,
-			DisguiseDrop: /^is no longer disguised\.$/
-		} as const
+		Skeleton: /^is ?(?:(?<State>now?)) (?:(?<=is no )longer disguised|impersonating (?<UserName>.+?), playing as (?<Role>.+))\.$/
 	} as const
 	static Networking = {
 		Ignore: /(?:^.*? authenticated from endpoint .*?\. Player ID assigned: .*?\. Auth token serial number: .*?\.$)|(?:^Banned player .*? tried to connect from endpoint .*$)|(?:^.*? \(.*?\) connected from IP address .*? sent Do Not Track signal\.$)/,
