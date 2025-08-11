@@ -25,6 +25,10 @@ interface SLRegExp extends RegExpExecArray {
 		'AuthSerial': string;
 		'RouteIP': string;
 		'DoorName': string;
+		'Action':string;
+		'Item':string;
+		'StatusEffect':string;
+		'PlayerName':string
 	}
 }
 
@@ -73,6 +77,7 @@ class SLRegExp {
 	static Door = {
 		Change: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) (?<State>\w+?) (?<DoorName>.+?)(?: using (?<Type>.+))?\.$/
 	} as const
+	static Throwable = /^(?:(?<PlayerName>.+?) \((?<PlayerID>[\w@]+?)\) has been (?<StatusEffect>.+?) by )?(?<IssuerName>.+?) \((?<IssuerID>[\w@]+?)\) (?<Action>threw|using) (?:a )?(?<Item>.+)\.$/
 }
 
 export { SLRegExp }

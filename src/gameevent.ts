@@ -41,7 +41,8 @@ namespace EventType {
 		RoundStart = 'round_start',
 		Suicide = 'suicide',
 		Respawn = 'respawn',
-		Connection = 'connection'
+		Connection = 'connection',
+		Throwable = 'throwable'
 	}
 }
 

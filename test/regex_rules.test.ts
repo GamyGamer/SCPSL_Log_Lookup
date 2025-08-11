@@ -257,89 +257,89 @@ describe('ClassChange', () => {
 	let capture: SLRegExp | null
 	describe('Death capture', () => {
 		const Player_role = 'Nine-Tailed Fox Captain'
-		TestData.UserID.forEach(Player_userID => {
-			TestData.UserID.forEach(Player_username => {
-				TestData.UserID.forEach(Killer_username => {
-					it('has commited suicide', () => {
-						let LogMessage = DeathStringBuilder('Suicide', Player_userID, Player_username, Player_role, Player_userID, Killer_username, Player_role, 'Nie ruszałeś się (Move or die)')
-						let result = LogMessage.next()
-						while (!result.done) {
-							capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
-							expect(capture.groups.UserName).toStrictEqual(Player_username)
-							expect(capture.groups.UserID).toStrictEqual(Player_userID)
-							expect(capture.groups.UserRole).toStrictEqual(Player_role)
-							expect(capture.groups.Classifier).toStrictEqual('suicide')
-							expect(capture.groups.IssuerName).toBeUndefined()
-							expect(capture.groups.IssuerID).toBeUndefined()
-							expect(capture.groups.IssuerRole).toBeUndefined()
-							result = LogMessage.next()
-						}
-					})
-					it('has been teamkilled', () => {
-						let LogMessage = DeathStringBuilder('FriendlyFire', Player_userID, Player_username, Player_role, Player_userID, Killer_username, Player_role, 'Nie ruszałeś się (Move or die)')
-						let result = LogMessage.next()
-						while (!result.done) {
-							capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
-							expect(capture.groups.UserName).toStrictEqual(Player_username)
-							expect(capture.groups.UserID).toStrictEqual(Player_userID)
-							expect(capture.groups.UserRole).toStrictEqual(Player_role)
-							expect(capture.groups.Classifier).toStrictEqual('teamkilled')
-							expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
-							expect(capture.groups.IssuerID).toStrictEqual(Player_userID)
-							expect(capture.groups.IssuerRole).toStrictEqual(Player_role)
-							result = LogMessage.next()
-						}
-					})
-					it('has been killed', () => {
-						let LogMessage = DeathStringBuilder('Default', Player_userID, Player_username, Player_role, Player_userID, Killer_username, Player_role, 'Nie ruszałeś się (Move or die)')
-						let result = LogMessage.next()
-						while (!result.done) {
-							capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
-							expect(capture.groups.UserName).toStrictEqual(Player_username)
-							expect(capture.groups.UserID).toStrictEqual(Player_userID)
-							expect(capture.groups.UserRole).toStrictEqual(Player_role)
-							expect(capture.groups.Classifier).toStrictEqual('killed')
-							expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
-							expect(capture.groups.IssuerID).toStrictEqual(Player_userID)
-							expect(capture.groups.IssuerRole).toStrictEqual(Player_role)
-							result = LogMessage.next()
-						}
-					})
-					it('has died', () => {
-						let LogMessage = DeathStringBuilder('Unknown', Player_userID, Player_username, Player_role, Player_userID, Killer_username, Player_role, 'Nie ruszałeś się')
-						let result = LogMessage.next()
-						while (!result.done) {
-							capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
-							expect(capture.groups.UserName).toStrictEqual(Player_username)
-							expect(capture.groups.UserID).toStrictEqual(Player_userID)
-							expect(capture.groups.UserRole).toStrictEqual(Player_role)
-							expect(capture.groups.Classifier).toStrictEqual('died')
-							expect(capture.groups.IssuerName).toBeUndefined()
-							expect(capture.groups.IssuerID).toBeUndefined()
-							expect(capture.groups.IssuerRole).toBeUndefined()
-							result = LogMessage.next()
-						}
-					});
-					it('killer unknown role', () => {
-						let LogMessage = DeathStringBuilder('Default', Player_userID, Player_username, Player_role, Player_userID, Killer_username)
-						let result = LogMessage.next()
-						while (!result.done) {
-							capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
-							expect(capture.groups.UserName).toStrictEqual(Player_username)
-							expect(capture.groups.UserID).toStrictEqual(Player_userID)
-							expect(capture.groups.UserRole).toStrictEqual(Player_role)
-							expect(capture.groups.Classifier).toStrictEqual('killed')
-							expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
-							expect(capture.groups.IssuerID).toStrictEqual(Player_userID)
-							expect(capture.groups.IssuerRole).toStrictEqual('Unknown class')
-							result = LogMessage.next()
-						}
-					})
-
+		const Killer_role = 'Chaos Insurgency Rifleman'
+		TestData.UserName.forEach(Player_username => {
+			TestData.UserName.forEach(Killer_username => {
+				it('has commited suicide', () => {
+					let LogMessage = DeathStringBuilder('Suicide', 'gamy@local', Player_username, Player_role, 'evil@network', Killer_username, Killer_role, 'Nie ruszałeś się (Move or die)')
+					let result = LogMessage.next()
+					while (!result.done) {
+						capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
+						expect(capture.groups.UserName).toStrictEqual(Player_username)
+						expect(capture.groups.UserID).toStrictEqual('gamy@local')
+						expect(capture.groups.UserRole).toStrictEqual(Player_role)
+						expect(capture.groups.Classifier).toStrictEqual('suicide')
+						expect(capture.groups.IssuerName).toBeUndefined()
+						expect(capture.groups.IssuerID).toBeUndefined()
+						expect(capture.groups.IssuerRole).toBeUndefined()
+						result = LogMessage.next()
+					}
+				})
+				it('has been teamkilled', () => {
+					let LogMessage = DeathStringBuilder('FriendlyFire', 'gamy@local', Player_username, Player_role, 'evil@network', Killer_username, Killer_role, 'Nie ruszałeś się (Move or die)')
+					let result = LogMessage.next()
+					while (!result.done) {
+						capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
+						expect(capture.groups.UserName).toStrictEqual(Player_username)
+						expect(capture.groups.UserID).toStrictEqual('gamy@local')
+						expect(capture.groups.UserRole).toStrictEqual(Player_role)
+						expect(capture.groups.Classifier).toStrictEqual('teamkilled')
+						expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
+						expect(capture.groups.IssuerID).toStrictEqual('evil@network')
+						expect(capture.groups.IssuerRole).toStrictEqual(Killer_role)
+						result = LogMessage.next()
+					}
+				})
+				it('has been killed', () => {
+					let LogMessage = DeathStringBuilder('Default', 'gamy@local', Player_username, Player_role, 'evil@network', Killer_username, Killer_role, 'Nie ruszałeś się (Move or die)')
+					let result = LogMessage.next()
+					while (!result.done) {
+						capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
+						expect(capture.groups.UserName).toStrictEqual(Player_username)
+						expect(capture.groups.UserID).toStrictEqual('gamy@local')
+						expect(capture.groups.UserRole).toStrictEqual(Player_role)
+						expect(capture.groups.Classifier).toStrictEqual('killed')
+						expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
+						expect(capture.groups.IssuerID).toStrictEqual('evil@network')
+						expect(capture.groups.IssuerRole).toStrictEqual(Killer_role)
+						result = LogMessage.next()
+					}
+				})
+				it('has died', () => {
+					let LogMessage = DeathStringBuilder('Unknown', 'gamy@local', Player_username, Player_role, 'evil@network', Killer_username, Killer_role, 'Nie ruszałeś się')
+					let result = LogMessage.next()
+					while (!result.done) {
+						capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
+						expect(capture.groups.UserName).toStrictEqual(Player_username)
+						expect(capture.groups.UserID).toStrictEqual('gamy@local')
+						expect(capture.groups.UserRole).toStrictEqual(Player_role)
+						expect(capture.groups.Classifier).toStrictEqual('died')
+						expect(capture.groups.IssuerName).toBeUndefined()
+						expect(capture.groups.IssuerID).toBeUndefined()
+						expect(capture.groups.IssuerRole).toBeUndefined()
+						result = LogMessage.next()
+					}
 				});
+				it('killer unknown role', () => {
+					let LogMessage = DeathStringBuilder('Default', 'gamy@local', Player_username, Player_role, 'evil@network', Killer_username)
+					let result = LogMessage.next()
+					while (!result.done) {
+						capture = <SLRegExp>SLRegExp.ClassChange.Death.exec(result.value)
+						expect(capture.groups.UserName).toStrictEqual(Player_username)
+						expect(capture.groups.UserID).toStrictEqual('gamy@local')
+						expect(capture.groups.UserRole).toStrictEqual(Player_role)
+						expect(capture.groups.Classifier).toStrictEqual('killed')
+						expect(capture.groups.IssuerName).toStrictEqual(Killer_username)
+						expect(capture.groups.IssuerID).toStrictEqual('evil@network')
+						expect(capture.groups.IssuerRole).toStrictEqual('Unknown class')
+						result = LogMessage.next()
+					}
+				})
+
 			});
 		});
-		// describe.each(TestData.UserID)('Player UserID: %s', (Player_userID) => {
+
+		// describe.each(TestData.UserID)('Player UserID: %s', ('gamy@local') => {
 		// 	describe.each(TestData.UserName)('Player Username: %s', (Player_username) => {
 		// 		describe.each(TestData.UserName)('Killer Username: %s', (Killer_username) => {
 		// 			describe.each(Object.values(Role.role_dictonary))('Player Role: %s', (Player_role) => {
@@ -514,5 +514,31 @@ describe('Door', () => {
 			expect(capture.groups.DoorName).toStrictEqual('unnamed door')
 			expect(capture.groups.Type).toStrictEqual('ParticleDisruptor')
 		});
+	})
+})
+
+describe('Throwable', () => {
+	let capture: SLRegExp | null
+	it('Should capture correctly', () => {
+		TestData.UserName.forEach(IssuerName => {
+			TestData.UserName.forEach(AffectedName => {
+				capture = <SLRegExp>SLRegExp.Throwable.exec(`${IssuerName} (gamy@local) threw GrenadeFlash.`)
+				expect(capture).not.toBeNull()
+				expect(capture.groups.IssuerName).toStrictEqual(IssuerName)
+				expect(capture.groups.IssuerID).toStrictEqual('gamy@local')
+				expect(capture.groups.Action).toStrictEqual('threw')
+				expect(capture.groups.Item).toStrictEqual('GrenadeFlash')
+
+				capture = <SLRegExp>SLRegExp.Throwable.exec(`${AffectedName} (evil@network) has been blinded by ${IssuerName} (gamy@local) using a flashbang grenade.`)
+				expect(capture).not.toBeNull()
+				expect(capture.groups.IssuerName).toStrictEqual(IssuerName)
+				expect(capture.groups.IssuerID).toStrictEqual('gamy@local')
+				expect(capture.groups.Action).toStrictEqual('using')
+				expect(capture.groups.Item).toStrictEqual('flashbang grenade')
+				expect(capture.groups.PlayerName).toStrictEqual(AffectedName)
+				expect(capture.groups.PlayerID).toStrictEqual('evil@network')
+				expect(capture.groups.StatusEffect).toStrictEqual('blinded')
+			})
+		})
 	})
 })
