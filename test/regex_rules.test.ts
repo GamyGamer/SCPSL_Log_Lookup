@@ -452,26 +452,59 @@ describe('Networking', () => {
 
 describe('Warhead', () => {
 	let capture: SLRegExp | null
-	it('Detonated', () => {
-		capture = <SLRegExp>SLRegExp.Warhead.Detonated.exec('Warhead detonated.')
+	it('Should capture correct data', () => {
+		capture = <SLRegExp>SLRegExp.Warhead.exec('Detonation cancelled.')
 		expect(capture).not.toBeNull()
-	})
-	it('Paused', () => {
-		capture = <SLRegExp>SLRegExp.Warhead.CountdownPaused.exec('Detonation cancelled.')
+		expect(capture.groups.UserName).toBeUndefined()
+		expect(capture.groups.UserID).toBeUndefined()
+		expect(capture.groups.Action).toStrictEqual('cancelled')
+		expect(capture.groups.State).toBeUndefined()
+
+		capture = <SLRegExp>SLRegExp.Warhead.exec('Warhead detonated.')
 		expect(capture).not.toBeNull()
-	})
-	it('Started', () => {
-		capture = <SLRegExp>SLRegExp.Warhead.CountdownStart.exec('Countdown started.')
+		expect(capture.groups.UserName).toBeUndefined()
+		expect(capture.groups.UserID).toBeUndefined()
+		expect(capture.groups.Action).toStrictEqual('detonated')
+		expect(capture.groups.State).toBeUndefined()
+
+		capture = <SLRegExp>SLRegExp.Warhead.exec('Countdown started.')
 		expect(capture).not.toBeNull()
+		expect(capture.groups.UserName).toBeUndefined()
+		expect(capture.groups.UserID).toBeUndefined()
+		expect(capture.groups.Action).toStrictEqual('started')
+		expect(capture.groups.State).toBeUndefined()
 	})
-	it('Status', () => {
+	it('Should capture correct data [variables]', () => {
 		TestData.UserName.forEach(UserName => {
-			capture = <SLRegExp>SLRegExp.Warhead.Status.exec(`${UserName} (gamygamer@local) set the Alpha Warhead status to True.`)
+			capture = <SLRegExp>SLRegExp.Warhead.exec(`${UserName} (gamy@local) started the Alpha Warhead detonation.`)
 			expect(capture).not.toBeNull()
 			expect(capture.groups.UserName).toStrictEqual(UserName)
-			expect(capture.groups.UserID).toStrictEqual('gamygamer@local')
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.Action).toStrictEqual('started')
+			expect(capture.groups.State).toBeUndefined()
+
+			capture = <SLRegExp>SLRegExp.Warhead.exec(`${UserName} (gamy@local) cancelled the Alpha Warhead detonation.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).toStrictEqual(UserName)
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.Action).toStrictEqual('cancelled')
+			expect(capture.groups.State).toBeUndefined()
+
+			capture = <SLRegExp>SLRegExp.Warhead.exec(`${UserName} (gamy@local) set the Alpha Warhead status to True.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).toStrictEqual(UserName)
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.Action).toStrictEqual('set')
 			expect(capture.groups.State).toStrictEqual('True')
-		})
+
+			capture = <SLRegExp>SLRegExp.Warhead.exec(`${UserName} (gamy@local) set the Alpha Warhead status to False.`)
+			expect(capture).not.toBeNull()
+			expect(capture.groups.UserName).toStrictEqual(UserName)
+			expect(capture.groups.UserID).toStrictEqual('gamy@local')
+			expect(capture.groups.Action).toStrictEqual('set')
+			expect(capture.groups.State).toStrictEqual('False')
+
+		});
 	})
 })
 

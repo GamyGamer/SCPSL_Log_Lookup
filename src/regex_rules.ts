@@ -25,10 +25,10 @@ interface SLRegExp extends RegExpExecArray {
 		'AuthSerial': string;
 		'RouteIP': string;
 		'DoorName': string;
-		'Action':string;
-		'Item':string;
-		'StatusEffect':string;
-		'PlayerName':string
+		'Action': string;
+		'Item': string;
+		'StatusEffect': string;
+		'PlayerName': string
 	}
 }
 
@@ -63,12 +63,7 @@ class SLRegExp {
 		Nickname: /^Nickname of (?<UserID>.+?) is now (?<UserName>.+)\.$/,
 		Disconnect: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) disconnected from IP address (?<IPaddress>.+?)\. Last class: (?<Role>.+)\.$/
 	} as const
-	static Warhead = {
-		Status: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) set the Alpha Warhead status to (?<State>.+)\.$/,
-		CountdownStart: /^Countdown started\.$/,
-		CountdownPaused: /^Detonation cancelled\.$/,
-		Detonated: /^Warhead detonated\.$/
-	} as const
+	static Warhead = /^(?:(?<UserName>.+?) \((?<UserID>[\w@]+?)\)|Detonation|Warhead|Countdown) (?<Action>\w+)(?: the Alpha Warhead (?:detonation|status to (?<State>.+)))?\.$/
 	static Logger = {
 		Ignore: /(?:Started logging\.)|(?:Game version:.+\.)|(?:Build type:.+\.)|(?:Build timestamp:.+\.)|(?:Headless:.+\.)/,
 		RoundStart: /^Round has been started\.$/,

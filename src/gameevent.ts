@@ -42,7 +42,8 @@ namespace EventType {
 		Suicide = 'suicide',
 		Respawn = 'respawn',
 		Connection = 'connection',
-		Throwable = 'throwable'
+		Throwable = 'throwable',
+		Warhead = 'warhead'
 	}
 }
 
