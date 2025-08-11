@@ -2,7 +2,7 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent;
+type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent;
 
 abstract class BasicEvent {
 	abstract readonly event_type: EventType.Specific
@@ -14,8 +14,10 @@ interface PlayerRef {
 	player?: Map<User['ID'], InternalRole>
 	//User who is responsible for class change, Shows current role
 	killer?: Map<User['ID'], InternalRole>
-	//User who invoked a class change via Remote admin
+	//User who invoked a class change via Remote admin, UserID only
 	issuer?: User['ID']
+	//User who has been affected by issuer, UserID only
+	affected?: User['ID']
 }
 
 
@@ -181,6 +183,49 @@ export class DoorEvent extends BasicEvent implements PlayerRef {
 	}
 	isDestroyed(): boolean {
 		return this.doorState == 'destroyed'
+	}
+}
+
+export class ThrowableEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Throwable;
+	readonly issuer: User['ID'];
+	private action: 'threw' | 'using';
+	private item: string;
+	readonly affected?: User['ID'];
+	private statusEffect?: string;
+	constructor(IssuerID: User['ID'], action: 'threw' | 'using', item: string, AffectedID?: string, statusEffect?: string) {
+		super();
+		this.issuer = IssuerID;
+		this.action = action;
+		this.item = item;
+		if ((typeof AffectedID == 'string') || (typeof statusEffect == 'string')) {
+			if (typeof AffectedID == 'undefined') { throw new Error("AffectedID is undefined"); }
+			if (typeof statusEffect == 'undefined') { throw new Error("statusEffect is undefined"); }
+			if (action != 'using') { throw new Error('AffectedID and statusEffect cannot exist in event that stores throwing item only') }
+			this.affected = AffectedID;
+			this.statusEffect = statusEffect;
+		}
+	}
+	getAction(): 'threw' | 'using' {
+		return this.action;
+	}
+	getItem(): string {
+		return this.item;
+	}
+	getIssuerID(): User['ID'] {
+		return this.issuer;
+	}
+	getAffectedID(): User['ID'] {
+		if (this.action == 'using') {
+			return this.affected!;
+		}
+		throw new Error("AffectedID does not exists on non using action");
+	}
+	getStatusEffect(): string {
+		if (this.action == 'using') {
+			return this.statusEffect!
+		}
+		throw new Error("StatusEffect does not exists on non using action");
 	}
 }
 

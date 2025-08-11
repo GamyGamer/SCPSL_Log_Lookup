@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent } from '../src/keyframedata';
+import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent, ThrowableEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -138,5 +138,34 @@ describe('Create DoorEvent', () => {
 	it('Should check door with destruction mode', () => {
 		Event = new DoorEvent('gamy@local', '914', 'destroyed', 'Grenade')
 		expect(Event.getDoorDestructionType()).toStrictEqual('Grenade')
+	})
+})
+
+describe('Create ThrowableEvent', () => {
+	let ThrewEvent: ThrowableEvent
+	let AffectedEvent: ThrowableEvent
+	beforeEach(() => {
+		ThrewEvent = new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash')
+		AffectedEvent = new ThrowableEvent('gamy@local', 'using', 'GrenadeFlash', 'evil@network', 'deafened')
+	})
+	it('Should return correct data', () => {
+		expect(ThrewEvent.getEventType()).toStrictEqual(EventType.Specific.Throwable)
+		expect(ThrewEvent.getAction()).toStrictEqual('threw')
+		expect(ThrewEvent.getItem()).toStrictEqual('GrenadeFlash')
+		expect(ThrewEvent.getIssuerID()).toStrictEqual('gamy@local')
+		expect(() => { ThrewEvent.getAffectedID() }).toThrow('AffectedID does not exists on non using action')
+		expect(() => { ThrewEvent.getStatusEffect() }).toThrow('StatusEffect does not exists on non using action')
+
+		expect(AffectedEvent.getEventType()).toStrictEqual(EventType.Specific.Throwable)
+		expect(AffectedEvent.getAction()).toStrictEqual('using')
+		expect(AffectedEvent.getItem()).toStrictEqual('GrenadeFlash')
+		expect(AffectedEvent.getIssuerID()).toStrictEqual('gamy@local')
+		expect(AffectedEvent.getAffectedID()).toStrictEqual('evil@network')
+		expect(AffectedEvent.getStatusEffect()).toStrictEqual('deafened')
+	})
+	it('Should throw', () => {
+		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', undefined) }).toThrow('statusEffect is undefined')
+		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', undefined, 'deafened') }).toThrow('AffectedID is undefined')
+		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', 'deafened') }).toThrow('AffectedID and statusEffect cannot exist in event that stores throwing item only')
 	})
 })
