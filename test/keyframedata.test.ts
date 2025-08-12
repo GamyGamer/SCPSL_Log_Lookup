@@ -7,6 +7,9 @@ describe('Create RoundStartEvent', () => {
 	let Event = new RoundStartEvent()
 	it('Should contain correct event_type', () => {
 		expect(Event.getEventType()).toStrictEqual(EventType.Specific.RoundStart)
+		expect(Event.hasPlayerMap()).toBeTruthy()
+		Event.addPlayer('gamy@local', 'ClassD')
+		expect(Event.getPlayerMap().get('gamy@local')).toStrictEqual('ClassD')
 	})
 })
 
@@ -30,7 +33,9 @@ describe('Create DeathEvent', () => {
 			expect(() => { Event.getKillerMap() }).toThrow('Despite not having single type kill, Killer Map does not exists')
 
 		})
-
+		it('Should return if it has PlayerMap', () => {
+			expect(Event.hasPlayerMap()).toBeTruthy()
+		})
 	})
 	describe('Two Players', () => {
 		let Event: DeathEvent
@@ -53,6 +58,9 @@ describe('Create DeathEvent', () => {
 			Event.death_type = 'died'
 			expect(() => { Event.getKillerMap() }).toThrow('Killer Map does not exist')
 		})
+		it('Should return if it has PlayerMap', () => {
+			expect(Event.hasPlayerMap()).toBeTruthy()
+		})
 	})
 
 	it('Should fail', () => {
@@ -68,23 +76,26 @@ describe('Create RespawnEvent', () => {
 		Event = new RespawnEvent('gamy@local', 'NtfPrivate')
 	})
 	it('Should return all players', () => {
-		expect(Event.GetPlayerMap().size).toStrictEqual(1)
-		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
-		expect(Event.GetPlayerMap().get('Evil@network')).toBeUndefined()
+		expect(Event.getPlayerMap().size).toStrictEqual(1)
+		expect(Event.getPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
+		expect(Event.getPlayerMap().get('Evil@network')).toBeUndefined()
 		Event.AddPlayer('Evil@network', 'ChaosRifleman')
-		expect(Event.GetPlayerMap().size).toStrictEqual(2)
-		expect(Event.GetPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
-		expect(Event.GetPlayerMap().get('Evil@network')).toStrictEqual('ChaosRifleman')
+		expect(Event.getPlayerMap().size).toStrictEqual(2)
+		expect(Event.getPlayerMap().get('gamy@local')).toStrictEqual('NtfPrivate')
+		expect(Event.getPlayerMap().get('Evil@network')).toStrictEqual('ChaosRifleman')
 
 	})
 	it('Should handle teams', () => {
 		let TempEvent = new RespawnEvent('gamy@local', 'NtfPrivate', 'FoundationForces')
-		expect(TempEvent.GetTeam()).toStrictEqual('FoundationForces')
-		TempEvent.SetTeam('ChaosInsurgency')
-		expect(TempEvent.GetTeam()).toStrictEqual('ChaosInsurgency')
+		expect(TempEvent.getTeam()).toStrictEqual('FoundationForces')
+		TempEvent.setTeam('ChaosInsurgency')
+		expect(TempEvent.getTeam()).toStrictEqual('ChaosInsurgency')
 	})
 	it('Should fail', () => {
 		expect(() => { Event.AddPlayer('gamy@local', 'ClassD') }).toThrow('This player already exists')
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(Event.hasPlayerMap()).toBeTruthy()
 	})
 })
 
@@ -117,6 +128,9 @@ describe('Create ConnectionEvent', () => {
 		Con_Event.setPlayerRole(<any>undefined)
 		expect(() => { Con_Event.getPlayerRole() }).toThrow('Something went wrong when getting player role')
 	})
+	it('Should return if it has PlayerMap', () => {
+		expect(Con_Event.hasPlayerMap()).toBeTruthy()
+	})
 })
 
 describe('Create DoorEvent', () => {
@@ -138,6 +152,9 @@ describe('Create DoorEvent', () => {
 	it('Should check door with destruction mode', () => {
 		Event = new DoorEvent('gamy@local', '914', 'destroyed', 'Grenade')
 		expect(Event.getDoorDestructionType()).toStrictEqual('Grenade')
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(Event.hasPlayerMap()).toBeFalsy()
 	})
 })
 
@@ -167,6 +184,9 @@ describe('Create ThrowableEvent', () => {
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', undefined) }).toThrow('statusEffect is undefined')
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', undefined, 'deafened') }).toThrow('AffectedID is undefined')
 		expect(() => { new ThrowableEvent('gamy@local', 'threw', 'GrenadeFlash', 'evil@network', 'deafened') }).toThrow('AffectedID and statusEffect cannot exist in event that stores throwing item only')
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(ThrewEvent.hasPlayerMap()).toBeFalsy()
 	})
 })
 
@@ -210,5 +230,14 @@ describe('Create WarheadEvent', () => {
 		//@ts-expect-error
 		invalidEvent.warhead_state = undefined
 		expect(() => { invalidEvent.getState() }).toThrow('An error occured when getting warhead state')
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(WarheadStart.hasPlayerMap()).toBeFalsy()
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(WarheadDetonated.hasPlayerMap()).toBeTruthy()
+	})
+	it('Should return if it has PlayerMap', () => {
+		expect(WarheadSet.hasPlayerMap()).toBeFalsy()
 	})
 })

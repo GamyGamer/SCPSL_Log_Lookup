@@ -3,6 +3,8 @@ import { InternalRole } from "./role";
 import { User } from "./user";
 
 type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent;
+export type withPlayerMap = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | WarheadEvent
+
 
 abstract class BasicEvent {
 	abstract readonly event_type: EventType.Specific
@@ -12,6 +14,8 @@ abstract class BasicEvent {
 interface PlayerRef {
 	//Map of user containing userID and new role (From this point this user IS this role, NO EXCEPTIONS! (Well... Maybe for plague doctor because he doesn't give info when someone turned))
 	player?: Map<User['ID'], InternalRole>
+	hasPlayerMap(): this is withPlayerMap
+	getPlayerMap?(): Map<User['ID'], InternalRole>
 	//User who is responsible for class change, Shows current role
 	killer?: Map<User['ID'], InternalRole>
 	//User who invoked a class change via Remote admin, UserID only
@@ -27,6 +31,15 @@ export class RoundStartEvent extends BasicEvent implements PlayerRef {
 	constructor() {
 		super()
 		this.player = new Map() // This will be our fallback for detected players mid round but still no official spawn 
+	}
+	getPlayerMap(): Map<User['ID'], InternalRole> {
+		return this.player
+	}
+	addPlayer(UserID: User['ID'], Role: InternalRole) {
+		this.getPlayerMap().set(UserID, Role)
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return true
 	}
 }
 
@@ -80,6 +93,9 @@ export class DeathEvent extends BasicEvent implements PlayerRef {
 				return this.killer
 		}
 	}
+	hasPlayerMap(): this is withPlayerMap {
+		return true
+	}
 }
 
 export class RespawnEvent extends BasicEvent implements PlayerRef {
@@ -101,14 +117,17 @@ export class RespawnEvent extends BasicEvent implements PlayerRef {
 		}
 		this.player.set(UserID, Role)
 	}
-	GetPlayerMap(): Map<string, InternalRole> {
+	getPlayerMap(): Map<string, InternalRole> {
 		return this.player
 	}
-	GetTeam(): 'FoundationForces' | 'ChaosInsurgency' | undefined {
+	getTeam(): 'FoundationForces' | 'ChaosInsurgency' | undefined {
 		return this.team
 	}
-	SetTeam(Team: 'FoundationForces' | 'ChaosInsurgency') {
+	setTeam(Team: 'FoundationForces' | 'ChaosInsurgency') {
 		this.team = Team
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return true
 	}
 }
 
@@ -149,6 +168,9 @@ export class ConnectionEvent extends BasicEvent implements PlayerRef {
 			throw new Error(`Something went wrong when getting PlayerID`);
 		}
 	}
+	hasPlayerMap(): this is withPlayerMap {
+		return true
+	}
 }
 
 type DoorState = 'destroyed' | 'opened' | 'closed';
@@ -185,6 +207,9 @@ export class DoorEvent extends BasicEvent implements PlayerRef {
 	}
 	isDestroyed(): boolean {
 		return this.doorState == 'destroyed'
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return false
 	}
 }
 
@@ -228,6 +253,9 @@ export class ThrowableEvent extends BasicEvent implements PlayerRef {
 			return this.statusEffect!
 		}
 		throw new Error("StatusEffect does not exists on non using action");
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return false
 	}
 }
 
@@ -284,6 +312,12 @@ export class WarheadEvent extends BasicEvent implements PlayerRef {
 		if (this.warhead_type != 'set') { throw new Error('Warhead must be set in order to have state') }
 		if (typeof this.warhead_state != 'undefined') return this.warhead_state
 		throw new Error('An error occured when getting warhead state')
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		if (this.warhead_type == 'detonated') {
+			return true
+		}
+		return false
 	}
 }
 
