@@ -1,145 +1,118 @@
-import { InternalRole, Role } from "./role";
+import { EventType } from "./gameevent";
 import { Keyframe } from "./keyframe";
+import { InternalRole } from "./role";
 import { User } from "./user";
 
+type KeyframeArray = Array<Keyframe | number>;
+type ProxyIndex = number
+type TrueIndex = number
+type ProxyArray = Array<Keyframe>;
 
+//Class representing one ROUND, it does not represent whole file (Since when SL stores multiple rounds in one file?)
 class Timeline {
 	//Keyframe: Specific keyframe that we do care about
 	//number: Amount of ignored lines, it should save space due to not needing to create so many objects
-	private keyframe: Array<Keyframe | number>
-	//to be moved to scprlparser
-	state = {
-		respawn_in_progress: false,
-		multiline_message: false
-	}
+
+	//All default operations works on a proxy array that ignores number, to get raw data you need to call getKeyframeArray
+	private keyframe: KeyframeArray
 	constructor() {
-		this.keyframe = new Array()
-	}
-	Clear() {
 		this.keyframe = new Array();
-		this.NewKeyFrame(null, 'round_start')
-		this.state.multiline_message = false
-		this.state.respawn_in_progress = false
 	}
-	/**
-	 * Creates new keyframe, returns index of new keyframe
-	 */
-	NewKeyFrame(timestamp: string, event?: string): number {
-		let current_keyframe = this.keyframe.push(new Keyframe(timestamp, event, event)) - 1;
-		// this.keyframe[current_keyframe].timestamp = new Date(timestamp);
-		// this.keyframe[current_keyframe].event = event;
-		// this.keyframe[current_keyframe].player = new Object();
-		return current_keyframe;
+	getKeyframeArray(): KeyframeArray {
+		return this.keyframe
 	}
-	EditKeyFrameEvent(keyframe: number, event: string) {
-		if (keyframe == undefined) {
-			throw new Error("keyframe is undefined");
-		}
-		if (event == undefined) {
-			throw new Error("event is undefined");
-		}
-		this.keyframe[keyframe].event = event
+	addKeyframe(keyframe: Keyframe): TrueIndex {
+		return this.keyframe.push(keyframe)
 	}
-	AddPlayer(keyframe: number, UserID: User['ID'], role: InternalRole) {
-		if (keyframe == null) {
-			throw new Error("keyframe is null")
+	addPadding(): void {
+		if (this.keyframe.length == 0) {
+			this.keyframe[0] = 1;
+		} else if (typeof this.keyframe[this.keyframe.length - 1] == 'number') {
+			(<number>this.keyframe[this.keyframe.length - 1]) += 1
 		}
-		if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
-			throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
+		else {
+			this.keyframe.push(1)
 		}
-		role = Role.TranslateToInternal(role)
-		if (this.keyframe[keyframe].player[UserID] != undefined && this.keyframe[keyframe].player[UserID] != role) {
-			if (role != 'Scp0492') { // Write as error
-				console.warn(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${role}`)
-			}
-			else {
-				console.log(`Player ${UserID} at ${keyframe} was ${this.keyframe[keyframe].player[UserID]} and now is ${role}`)
+	}
+	getTruncatedKeyframeArray(): ProxyArray {
+		const prepared: ProxyArray = new Array()
+		for (let index = 0; index < this.keyframe.length; index++) {
+			const element = this.keyframe[index]
+			if (typeof element != 'number') {
+				prepared.push(element)
 			}
 		}
-		this.keyframe[keyframe].player[UserID] = role
+		return prepared
 	}
-	AddKiller(keyframe: number, userID: User['ID']) {
-		if (keyframe == undefined) {
-			throw new Error("keyframe is undefined")
-		}
-		if (keyframe < 0 || keyframe > this.keyframe.length - 1) {
-			throw new Error(`keyframe array has size of ${this.keyframe.length}, accessing out of bounds`)
-		}
-		if (userID == undefined) {
-			throw new Error("UserID is undefined")
-		}
-		this.keyframe[keyframe].killer = userID;
+	getKeyframeSpecificType(index: ProxyIndex): EventType.Specific {
+		return this.getTruncatedKeyframeArray()[index].GetData().getEventType()
 	}
-	PlayerExist(UserID: string): boolean {
-		for (let index = this.keyframe.length - 1; index >= 0; index--) {
-			if (this.keyframe[index].player[UserID] != undefined) {
-				return true
+	FindNewestPlayer(UserID: User['ID']): ProxyIndex {
+		if (!this.PlayerExist(UserID)) {
+			throw new Error(`Player ${UserID} Does not exists`)
+		}
+		const proxyArray = this.getTruncatedKeyframeArray()
+		for (let index = proxyArray.length - 1; index >= 0; index--) {
+			const element = proxyArray[index].GetData()
+			if (element.hasPlayerMap()) {
+				if (typeof element.getPlayerMap().get(UserID) != 'undefined') {
+					return index
+				}
 			}
 		}
-		return false;
+		throw new Error(`Unable to find ${UserID}`);
 	}
-	FindNewestEventType(event: string): number {
-		if (event == undefined) {
-			throw new Error("event type is undefined")
+	PlayerExist(UserID: User['ID']): boolean {
+		const proxyArray = this.getTruncatedKeyframeArray()
+		for (let index = 0; index < proxyArray.length; index++) {
+			const element = proxyArray[index].GetData();
+			if (element.hasPlayerMap()) {
+				if (typeof element.getPlayerMap().get(UserID) != 'undefined') {
+					return true;
+				}
+			}
 		}
-		for (let index = this.keyframe.length - 1; index >= 0; index--) {
-			if (this.keyframe[index].event == event) {
+		return false
+	}
+	BackPropagatePlayerRole(userID: User['ID'], Role: InternalRole) {
+		if (!this.PlayerExist(userID)) {
+
+		}
+		else {
+			this.AddPlayer(this.FindNewestPlayer(userID), userID, Role)
+		}
+	}
+	AddPlayer(index: ProxyIndex, userID: User['ID'], role: InternalRole) {
+		const proxyArray = this.getTruncatedKeyframeArray()
+		if (index < 0 || index > proxyArray.length - 1) {
+			throw new Error(`keyframe array has size of ${proxyArray.length}, accessing out of bounds`)
+		}
+		const keyframeData = proxyArray[index].GetData()
+		if (keyframeData.hasPlayerMap()) {
+			switch (keyframeData.getPlayerMap().get(userID)) {
+				case undefined:
+					break;
+				case 'Scp0492':
+					console.log(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
+					break
+				default:
+					console.warn(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
+					break;
+			}
+			keyframeData.getPlayerMap().set(userID,role)
+		}
+		else {
+			throw new Error(`Keyframe as virtual index ${index} doesn't store playermap (${keyframeData.getEventType()})`);
+		}
+	}
+	FindNewestEventType(event: EventType.Specific): ProxyIndex {
+		const proxyArray = this.getTruncatedKeyframeArray()
+		for (let index = proxyArray.length - 1; index >= 0; index--) {
+			if (proxyArray[index].GetSpecificEventType() == event) {
 				return index
 			}
 		}
 		throw new Error(`Event ${event} does not exist`)
-	}
-	/**
-	 * Method to find newest keyframe index, passing Role and keyframe narrows searching 
-	 */
-	FindNewestPlayer(UserID: User['ID'], role?: string, keyframe?: number): number {
-		if (!this.PlayerExist(UserID)) {
-			throw new Error(`Player ${UserID} Does not exists`)
-		}
-		let startfrom;
-		if (keyframe == undefined) {
-			startfrom = this.keyframe.length - 1;
-		}
-		else {
-			startfrom = keyframe
-		}
-
-		if (role == undefined) {
-			for (let index = startfrom; index >= 0; index--) {
-				if (this.keyframe[index].player[UserID] != undefined) {
-					return index
-				}
-			}
-		}
-		else {
-			role = Role.TranslateToInternal(role)
-			for (let index = startfrom; index >= 0; index--) {
-				if (this.keyframe[index].player[UserID] == role) {
-					return index
-				}
-			}
-		}
-		throw new Error(`Unable to find player ${UserID} with ${role} role`)
-
-	}
-	FindPlayerWithRole(role: string) {
-		for (const [playerID, playerRole] of Object.entries(this.keyframe[0].player)) {
-			if (playerRole == role) {
-				return playerID;
-			}
-		}
-		return null;
-	}
-	/**
-	* W momencie otrzymania roli następuje wsteczna propagacja w osi czasu
-	*/
-	BackPropagatePlayerRole(UserID: string, Role: string) {
-		if (!this.PlayerExist(UserID)) { // If player does not exist assume that's their first role (round start)
-			this.AddPlayer(0, UserID, Role)
-		}
-		else {
-			this.AddPlayer(this.FindNewestPlayer(UserID), UserID, Role)  //Złap zombiaka
-		}
 	}
 
 }

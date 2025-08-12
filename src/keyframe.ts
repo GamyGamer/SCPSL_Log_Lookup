@@ -58,6 +58,9 @@ class Keyframe {
 	SetData(data: KeyframeData) {
 		this.data = data
 	}
+	GetSpecificEventType(){
+		return this.data.getEventType()
+	}
 }
 
 export { Keyframe }
