@@ -125,17 +125,17 @@ describe('SplitLogs', () => {
 	it('Should split logs correctly', () => {
 		capture = <SLRegExp>SLRegExp.SplitLogs.exec('2025-07-08 17:10:11.162 +02:00 | Internal            | Game logic     | Started logging.');
 		expect(capture).not.toBeNull()
-		expect(capture.groups['Timestamp'].trim()).toStrictEqual('2025-07-08 17:10:11.162 +02:00')
-		expect(capture.groups['Type'].trim()).toStrictEqual('Internal')
-		expect(capture.groups['Module'].trim()).toStrictEqual('Game logic')
-		expect(capture.groups['Message'].trim()).toStrictEqual('Started logging.')
+		expect(capture.groups['Timestamp']).toStrictEqual('2025-07-08 17:10:11.162 +02:00')
+		expect(capture.groups['Type']).toStrictEqual('Internal')
+		expect(capture.groups['Module']).toStrictEqual('Game logic')
+		expect(capture.groups['Message']).toStrictEqual('Started logging.')
 
 		capture = <SLRegExp>SLRegExp.SplitLogs.exec('2025-07-08 17:10:31.100 +02:00 | Connection update   | Networking     | Nickname of ARandomPerson@steam is now | Wspaniały |.');
 		expect(capture).not.toBeNull()
-		expect(capture.groups['Timestamp'].trim()).toStrictEqual('2025-07-08 17:10:31.100 +02:00')
-		expect(capture.groups['Type'].trim()).toStrictEqual('Connection update')
-		expect(capture.groups['Module'].trim()).toStrictEqual('Networking')
-		expect(capture.groups['Message'].trim()).toStrictEqual('Nickname of ARandomPerson@steam is now | Wspaniały |.')
+		expect(capture.groups['Timestamp']).toStrictEqual('2025-07-08 17:10:31.100 +02:00')
+		expect(capture.groups['Type']).toStrictEqual('Connection update')
+		expect(capture.groups['Module']).toStrictEqual('Networking')
+		expect(capture.groups['Message']).toStrictEqual('Nickname of ARandomPerson@steam is now | Wspaniały |.')
 	})
 })
 

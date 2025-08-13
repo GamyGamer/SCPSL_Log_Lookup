@@ -33,7 +33,7 @@ interface SLRegExp extends RegExpExecArray {
 }
 
 class SLRegExp {
-	static SplitLogs = /^(?<Timestamp>.+?)\|(?<Type>.+?)\|(?<Module>.+?)\|(?<Message>.+)$/
+	static SplitLogs = /^(?:\s*?)(?<Timestamp>\S.+?)(?:\s*?)\|(?:\s*?)(?<Type>\S.+?)(?:\s*?)\|(?:\s*?)(?<Module>\S.+?)(?:\s*?)\|(?:\s*?)(?<Message>\S.+)(?:\s*?)$/
 	static SplitIP = /^(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?$/
 
 	static Administrative = {
