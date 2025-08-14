@@ -45,15 +45,15 @@ class Timeline {
 		return prepared
 	}
 	getKeyframeSpecificType(index: ProxyIndex): EventType.Specific {
-		return this.getTruncatedKeyframeArray()[index].GetData().getEventType()
+		this.OutOfBoundsCheck(index)
+		return this.proxyArray[index].GetData().getEventType()
 	}
 	FindNewestPlayer(UserID: User['ID']): ProxyIndex {
 		if (!this.PlayerExist(UserID)) {
 			throw new Error(`Player ${UserID} Does not exists`)
 		}
-		const proxyArray = this.getTruncatedKeyframeArray()
-		for (let index = proxyArray.length - 1; index >= 0; index--) {
-			const element = proxyArray[index].GetData()
+		for (let index = this.proxyArray.length - 1; index >= 0; index--) {
+			const element = this.proxyArray[index].GetData()
 			if (element.hasPlayerMap()) {
 				if (typeof element.getPlayerMap().get(UserID) != 'undefined') {
 					return index
@@ -63,9 +63,8 @@ class Timeline {
 		throw new Error(`Unable to find ${UserID}`);
 	}
 	PlayerExist(UserID: User['ID']): boolean {
-		const proxyArray = this.getTruncatedKeyframeArray()
-		for (let index = 0; index < proxyArray.length; index++) {
-			const element = proxyArray[index].GetData();
+		for (let index = 0; index < this.proxyArray.length; index++) {
+			const element = this.proxyArray[index].GetData();
 			if (element.hasPlayerMap()) {
 				if (typeof element.getPlayerMap().get(UserID) != 'undefined') {
 					return true;
@@ -76,22 +75,23 @@ class Timeline {
 	}
 	BackPropagatePlayerRole(userID: User['ID'], Role: InternalRole) {
 		if (!this.PlayerExist(userID)) {
-
+			throw new Error('Not implemented exception')
 		}
 		else {
 			this.AddPlayer(this.FindNewestPlayer(userID), userID, Role)
 		}
 	}
 	AddPlayer(index: ProxyIndex, userID: User['ID'], role: InternalRole) {
-		const proxyArray = this.getTruncatedKeyframeArray()
-		if (index < 0 || index > proxyArray.length - 1) {
-			throw new Error(`keyframe array has size of ${proxyArray.length}, accessing out of bounds`)
+		this.OutOfBoundsCheck(index)
+
+		const keyframeData = this.proxyArray[index].GetData()
+
+		if (!keyframeData.hasPlayerMap()) {
+			throw new Error(`Keyframe as virtual index ${index} doesn't store playermap (${keyframeData.getEventType()})`);
 		}
-		const keyframeData = proxyArray[index].GetData()
-		if (keyframeData.hasPlayerMap()) {
-			switch (keyframeData.getPlayerMap().get(userID)) {
-				case undefined:
-					break;
+
+		if (keyframeData.getPlayerMap().get(userID) != role) {
+			switch (role) {
 				case 'Scp0492':
 					console.log(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
 					break
@@ -99,20 +99,26 @@ class Timeline {
 					console.warn(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
 					break;
 			}
-			keyframeData.getPlayerMap().set(userID,role)
+			keyframeData.getPlayerMap().set(userID, role)
 		}
 		else {
-			throw new Error(`Keyframe as virtual index ${index} doesn't store playermap (${keyframeData.getEventType()})`);
 		}
 	}
 	FindNewestEventType(event: EventType.Specific): ProxyIndex {
-		const proxyArray = this.getTruncatedKeyframeArray()
-		for (let index = proxyArray.length - 1; index >= 0; index--) {
-			if (proxyArray[index].GetSpecificEventType() == event) {
+		for (let index = this.proxyArray.length - 1; index >= 0; index--) {
+			if (this.proxyArray[index].GetSpecificEventType() == event) {
 				return index
 			}
 		}
 		throw new Error(`Event ${event} does not exist`)
+	}
+	get proxyArray() {
+		return this.getTruncatedKeyframeArray()
+	}
+	private OutOfBoundsCheck(index: ProxyIndex) {
+		if (index < 0 || index > this.proxyArray.length - 1) {
+			throw new Error(`keyframe array has size of ${this.proxyArray.length}, accessing out of bounds`)
+		}
 	}
 
 }
