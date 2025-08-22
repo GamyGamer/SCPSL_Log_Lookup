@@ -5,8 +5,8 @@
   "main": "script.ts",
   "private": "true",
   "scripts": {
-    "devmode": "webpack --mode development",
-    "prodmode": "webpack --mode production"
+    "devmode": "webpack --mode=development",
+    "prodmode": "webpack --mode=production"
   },
   "repository": {
     "type": "git",

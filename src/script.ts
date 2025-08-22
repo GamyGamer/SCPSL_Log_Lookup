@@ -5,8 +5,9 @@ import { SLRegExp } from './regex_rules';
 import { Settings } from './settings';
 import { Role } from './role';
 import { Timeline } from './timeline';
-import { UserList } from './user';
+import { User, UserList } from './user';
 import './super_secret_settings';
+import { SCPRLParser } from './scprlparser';
 
 let version = "0.3.4-ts004-Unstable"
 let indev = true
@@ -46,8 +47,9 @@ let indev = true
 
 */
 
-let timeline: Array<Timeline> = new Array();
+let parsedfiles: Array<SCPRLParser> = new Array();
 let Userlist = new UserList();
+
 const article_array: Array<HTMLElement> = new Array();
 
 
@@ -120,8 +122,30 @@ function SelectPlayer(this: HTMLDivElement) {
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
 }
 
-function MakeTimeLine(this: HTMLInputElement) {
-	throw new Error("Not Implemented");
+function ParseFile(filereader: FileReader, index: number) {
+	let lines: Array<string> = new Array()
+	if (typeof filereader.result === 'string') {
+		lines = filereader.result.split('\n');
+	}
+	else {
+		console.warn(typeof filereader.result)
+		throw new Error("Something went horribly wrong (reading data as binary instead of text?)");
+	}
+	let log_line: SLRegExp | null;
+	log_line = <SLRegExp>SLRegExp.SplitLogs.exec(lines[0])
+	if (log_line == null) {
+		throw new Error(`An error occured when splitting line, it's possible that user loaded invalid file\nFirst line content: ${lines[0]}`);
+	}
+	parsedfiles[index] = new SCPRLParser()
+	lines.forEach(element => {
+		parsedfiles[index].consumeLine(element)
+	});
+	console.log(parsedfiles)
+
+
+}
+
+function ReadFilesHandler(this: HTMLInputElement) {
 	window.document.getElementById('progress_bar')!.style.display = 'block';
 	window.document.getElementById('welcome')!.style.display = 'none';
 	window.document.getElementById('log_select')!.innerHTML = '';
@@ -130,6 +154,7 @@ function MakeTimeLine(this: HTMLInputElement) {
 	if (this.files == null) {
 		throw new Error("There was an error while loading files");
 	}
+
 	for (let index = 0; index < this.files.length; index++) { // Generate file selector
 		const li = window.document.createElement('li')
 		// li.id=`file_selector_${index}` // 
@@ -140,233 +165,231 @@ function MakeTimeLine(this: HTMLInputElement) {
 		}
 		window.document.getElementById('log_select')?.appendChild(li);
 	}
-	timeline = new Array();
+	parsedfiles = new Array()
+
 	console.clear()
-	UserID_assoc.clear()
-	IPaddress_assoc.clear()
+	Userlist = new UserList()
 	let progressbar_current = 0
 	window.document.getElementById('progress_bar')?.setAttribute('max', (this.files.length - 1).toString())
 
 	for (const [index, file] of (<Array<[number, File]>><Array<[unknown, File]>>Object.entries(this.files))) {
 		console.log(`${index}: ${file}`)
-		let filereader = new FileReader();
-		filereader.addEventListener('load', () => { //WARNING: This is done in async way, note possible race conditions
-
-			// DOM CREATION>
-			const article = window.document.createElement('article');
-
-			const table3114 = window.document.createElement('table');
-			// table3114.style.display='none'
-			const tbody3114 = window.document.createElement('tbody');
-			tbody3114.style.display = 'none'
-
-			const table = window.document.createElement('table')
-			const tbody = window.document.createElement('tbody')
-			const death_log = window.document.createElement('span')
-			const admin_chat_log = window.document.createElement('span')
-
-			table.appendChild(tbody)
-
-			table3114.appendChild(tbody3114)
-			article.appendChild(table3114)
-			const th3114 = window.document.createElement('th')
-			th3114.colSpan = 2
-			tbody3114.appendChild(th3114)
-
-			article.appendChild(table)
-			article.appendChild(death_log)
-
-			article.appendChild(window.document.createElement('hr'))
-			article.appendChild(admin_chat_log)
-			article_array[index] = article;
-
-
-			let state = { //TOFIX: somehow state can 'leak' into other files, issue found by getting an error in broadcast handler when no broadcast was present in specific file and yet it was marked
-				respawn_in_progress: false,
-				broadcast: false,
-				is_3114_in_game: false,
-				admin_chat: false,
-			}
-			let lines = new Array();
-			let log_line: SLRegExp | null;
-			window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current++).toString())
-			timeline[index] = new Timeline();
-			console.debug(index)
-			// document.getElementById('output').textContent = filereader.result;
-
-			if (typeof filereader.result === 'string') {
-				lines = filereader.result.split('\n');
-			}
-			else {
-				console.warn(typeof filereader.result)
-				throw new Error("Something went horribly wrong (reading data as binary instead of text?)");
-			}
-
-			// const tbody = document.getElementById('table')
-			tbody.innerHTML = ""
-			lines.forEach(element => {
-				if (element == "") {
-					return;
-				}
-				log_line = <SLRegExp>SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
-				if (log_line == null) {
-					console.log(index)
-					console.log(admin_chat_log)
-					if (element == "") {//If linesplit happened before message ended I have to edit last element
-						element = "\n"
-					}
-					if (state.broadcast) {
-
-						//article.table.tbody.[last tr].[last td].textContent
-						(<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
-						return
-					}
-					if (state.admin_chat) {
-						(<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
-						admin_chat_log.appendChild(window.document.createTextNode(`${element}`));
-						admin_chat_log.appendChild(document.createElement('br'));
-						return
-					}
-					throw new Error(`Error splitting ${element}`);
-				}
-				if (log_line.length != 5) {
-					throw new Error(`Error splitting ${element}`);
-				}
-
-				state.broadcast = false; // move to timeline
-				state.admin_chat = false;
-				{
-					log_line.groups["Timestamp"] = log_line.groups["Timestamp"].trim()
-					log_line.groups["Type"] = log_line.groups["Type"].trim()
-					log_line.groups["Module"] = log_line.groups["Module"].trim()
-					log_line.groups["Message"] = log_line.groups["Message"].trim()
-				}
-
-				for (let index = 0; index < log_line.length; index++) {
-					log_line[index] = log_line[index].trim(); // Remove leading spaces
-				}
-				const tr = document.createElement('tr');
-				const td = document.createElement('td');
-				const img = document.createElement('img');
-
-
-				switch (log_line.groups["Module"]) {
-					case "Administrative":
-						AdministativeHandle(log_line, state, admin_chat_log)
-						img.src = Icon.Administrative
-						break;
-					case "Logger":
-					case "Game logic":
-						LoggerHandle(log_line, tr, timeline[index])
-						img.src = Icon.Log
-						break;
-					case "Class change":
-						ClassChangeHandle(log_line, tr, timeline[index], state, death_log, tbody3114)
-						img.src = Icon.Swap
-						break;
-					case "Warhead":
-						WarheadHandle(log_line, tr, timeline[index])
-						img.src = Icon.Warhead
-						break;
-					case "Networking":
-						NetworkingHandle(log_line, timeline[index])
-						img.src = Icon.NA
-						break;
-					default:
-						console.info(`Module '${log_line.groups["Module"]}' requires implementation: ${log_line.groups["Message"]}`);
-						img.src = Icon.NA
-						break;
-				}
-
-				td.appendChild(img)
-				tr.appendChild(td)
-				for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
-					const td = document.createElement('td');
-					td.textContent = log_line[index]
-					tr.appendChild(td)
-				}
-				if (SLRegExp.DeathReason.SCPIntentional.test(log_line.groups["Message"])) {
-					if (tr.classList.contains("notable_death")) {
-						tr.classList.remove("notable_death")
-					}
-					tr.classList.add("unusual_death")
-				}
-
-				//TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
-				// let regmatch = REGEX_ID_to_username.exec(new_lines[4])
-				// if (regmatch != null) {
-				//     UserID_assoc[regmatch[1]] = regmatch[2]
-				// }
-
-				tbody.appendChild(tr)
-
-			});
-			if (!(admin_chat_log.innerText == '')) {
-				admin_chat_log.appendChild(window.document.createElement('hr'))
-			}
-
-
-			if (progressbar_current == this.files?.length) {
-				if (Settings.alert_mode) {
-					if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
-						/*
-						If you want to use this functionality type in console:
-						let monitored_users = new Array()
-						monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
-						*/
-						return;
-					}
-					for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
-						monitored_users.UserID.forEach(element => {
-							if (element == userID) {
-								alert(`Monitored user ${Nickname} (${userID}) was found`)
-							}
-						})
-					}
-					for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
-						monitored_users.IPaddress.forEach(element => {
-							let DatabaseIP = <SLRegExp | null>SLRegExp.SplitIP.exec(element)
-							let PlayerIP = <SLRegExp | null>SLRegExp.SplitIP.exec(IPaddress)
-							if (DatabaseIP != null && PlayerIP != null) {
-								let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
-								let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
-								if (DatabaseIP.groups["CIDR"] != undefined) { // if no CIDR just compare
-									player_IP = player_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
-									db_IP = db_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
-
-								}
-								if (db_IP == player_IP) {
-									for (let index = 0; index < userID.length; index++) {
-										const element = userID[index];
-										if (UserID_assoc.get(element) != undefined) {
-											alert(`Monitored user ${UserID_assoc.get(element)} (${IPaddress_assoc.get(IPaddress)}) [${IPaddress}] [${element}] was found`) //TOFIX
-											break
-										}
-									}
-								}
-							}
-							else {
-								throw new Error(`Unable to split network address ${element}`);
-							}
-						})
-						if (userID.length > 1) {
-							alert(`Multiple accounts detected from IP ${IPaddress}: ${userID}`)
-						}
-					}
-				}
-				console.debug('ready to display')
-				for (const [index, article] of Object.entries(article_array)) {
-					if (Number(index) == 0) {
-						article.setAttribute('class', 'selected')
-					}
-					window.document.getElementsByTagName('main')[0].appendChild(article)
-				}
-				window.document.getElementById('progress_bar')?.setAttribute('max', (this.files.length).toString())
-				window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current).toString())
-			}
-		}, { once: true })
+		const filereader = new FileReader()
+		filereader.addEventListener('load', () => { ParseFile(filereader, index) }, { once: true, passive: true })
 		filereader.readAsText(file)
 	}
+
+
+
+	// 		// DOM CREATION>
+	//		const article = window.document.createElement('article');
+
+	// 		const table3114 = window.document.createElement('table');
+	// 		// table3114.style.display='none'
+	// 		const tbody3114 = window.document.createElement('tbody');
+	// 		tbody3114.style.display = 'none'
+
+	// 		const table = window.document.createElement('table')
+	// 		const tbody = window.document.createElement('tbody')
+	// 		const death_log = window.document.createElement('span')
+	// 		const admin_chat_log = window.document.createElement('span')
+
+	// 		table.appendChild(tbody)
+
+	// 		table3114.appendChild(tbody3114)
+	// 		article.appendChild(table3114)
+	// 		const th3114 = window.document.createElement('th')
+	// 		th3114.colSpan = 2
+	// 		tbody3114.appendChild(th3114)
+
+	// 		article.appendChild(table)
+	// 		article.appendChild(death_log)
+
+	// 		article.appendChild(window.document.createElement('hr'))
+	// 		article.appendChild(admin_chat_log)
+	// 		article_array[index] = article;
+
+
+	// 		let lines = new Array();
+	// 		let log_line: SLRegExp | null;
+	// 		window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current++).toString())
+	// 		timeline[index] = new Timeline();
+	// 		console.debug(index)
+	// 		// document.getElementById('output').textContent = filereader.result;
+
+	// 		if (typeof filereader.result === 'string') {
+	// 			lines = filereader.result.split('\n');
+	// 		}
+	// 		else {
+	// 			console.warn(typeof filereader.result)
+	// 			throw new Error("Something went horribly wrong (reading data as binary instead of text?)");
+	// 		}
+
+	// 		// const tbody = document.getElementById('table')
+	// 		tbody.innerHTML = ""
+	// 		lines.forEach(element => {
+	// 			if (element == "") {
+	// 				return;
+	// 			}
+	// 			log_line = <SLRegExp>SLRegExp.SplitLogs.exec(element) // Dzięki śmieszkowi który wstawił do nicku '|' :DDDDDD (Pain) [Przynajmniej znalazłem błąd który nie przechwytywał końca rundy]
+	// 			if (log_line == null) {
+	// 				console.log(index)
+	// 				console.log(admin_chat_log)
+	// 				if (element == "") {//If linesplit happened before message ended I have to edit last element
+	// 					element = "\n"
+	// 				}
+	// 				if (state.broadcast) {
+
+	// 					//article.table.tbody.[last tr].[last td].textContent
+	// 					(<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
+	// 					return
+	// 				}
+	// 				if (state.admin_chat) {
+	// 					(<HTMLTableCellElement>(<HTMLTableRowElement>article.children[1].children[0].lastChild).lastChild).textContent += element;
+	// 					admin_chat_log.appendChild(window.document.createTextNode(`${element}`));
+	// 					admin_chat_log.appendChild(document.createElement('br'));
+	// 					return
+	// 				}
+	// 				throw new Error(`Error splitting ${element}`);
+	// 			}
+	// 			if (log_line.length != 5) {
+	// 				throw new Error(`Error splitting ${element}`);
+	// 			}
+
+	// 			state.broadcast = false; // move to timeline
+	// 			state.admin_chat = false;
+	// 			{
+	// 				log_line.groups["Timestamp"] = log_line.groups["Timestamp"].trim()
+	// 				log_line.groups["Type"] = log_line.groups["Type"].trim()
+	// 				log_line.groups["Module"] = log_line.groups["Module"].trim()
+	// 				log_line.groups["Message"] = log_line.groups["Message"].trim()
+	// 			}
+
+	// 			for (let index = 0; index < log_line.length; index++) {
+	// 				log_line[index] = log_line[index].trim(); // Remove leading spaces
+	// 			}
+	// 			const tr = document.createElement('tr');
+	// 			const td = document.createElement('td');
+	// 			const img = document.createElement('img');
+
+
+	// 			switch (log_line.groups["Module"]) {
+	// 				case "Administrative":
+	// 					AdministativeHandle(log_line, state, admin_chat_log)
+	// 					img.src = Icon.Administrative
+	// 					break;
+	// 				case "Logger":
+	// 				case "Game logic":
+	// 					LoggerHandle(log_line, tr, timeline[index])
+	// 					img.src = Icon.Log
+	// 					break;
+	// 				case "Class change":
+	// 					ClassChangeHandle(log_line, tr, timeline[index], state, death_log, tbody3114)
+	// 					img.src = Icon.Swap
+	// 					break;
+	// 				case "Warhead":
+	// 					WarheadHandle(log_line, tr, timeline[index])
+	// 					img.src = Icon.Warhead
+	// 					break;
+	// 				case "Networking":
+	// 					NetworkingHandle(log_line, timeline[index])
+	// 					img.src = Icon.NA
+	// 					break;
+	// 				default:
+	// 					console.info(`Module '${log_line.groups["Module"]}' requires implementation: ${log_line.groups["Message"]}`);
+	// 					img.src = Icon.NA
+	// 					break;
+	// 			}
+
+	// 			td.appendChild(img)
+	// 			tr.appendChild(td)
+	// 			for (let index = 1; index < 5; index++) { // Przepisz fragmenty z logów do odpowiednich komórek
+	// 				const td = document.createElement('td');
+	// 				td.textContent = log_line[index]
+	// 				tr.appendChild(td)
+	// 			}
+	// 			if (SLRegExp.DeathReason.SCPIntentional.test(log_line.groups["Message"])) {
+	// 				if (tr.classList.contains("notable_death")) {
+	// 					tr.classList.remove("notable_death")
+	// 				}
+	// 				tr.classList.add("unusual_death")
+	// 			}
+
+	// 			//TODO: Jeśli ktoś zmienił nick to zapisz w tablicy
+	// 			// let regmatch = REGEX_ID_to_username.exec(new_lines[4])
+	// 			// if (regmatch != null) {
+	// 			//     UserID_assoc[regmatch[1]] = regmatch[2]
+	// 			// }
+
+	// 			tbody.appendChild(tr)
+
+	// 		});
+	// 		if (!(admin_chat_log.innerText == '')) {
+	// 			admin_chat_log.appendChild(window.document.createElement('hr'))
+	// 		}
+
+
+	// 		if (progressbar_current == this.files?.length) {
+	// 			if (Settings.alert_mode) {
+	// 				if (typeof monitored_users === 'undefined' || monitored_users === null) { // monitored users are defined locally, it stores array of userIDs to monit users that specific person was found on the server (like potential cheater)
+	// 					/*
+	// 					If you want to use this functionality type in console:
+	// 					let monitored_users = new Array()
+	// 					monitored_users.push( tutaj wstaw ID osoby w pojedynczych cudzysłowiach '' )
+	// 					*/
+	// 					return;
+	// 				}
+	// 				for (const [userID, Nickname] of Object.entries(UserID_assoc)) {
+	// 					monitored_users.UserID.forEach(element => {
+	// 						if (element == userID) {
+	// 							alert(`Monitored user ${Nickname} (${userID}) was found`)
+	// 						}
+	// 					})
+	// 				}
+	// 				for (const [IPaddress, userID] of Object.entries(IPaddress_assoc)) {
+	// 					monitored_users.IPaddress.forEach(element => {
+	// 						let DatabaseIP = <SLRegExp | null>SLRegExp.SplitIP.exec(element)
+	// 						let PlayerIP = <SLRegExp | null>SLRegExp.SplitIP.exec(IPaddress)
+	// 						if (DatabaseIP != null && PlayerIP != null) {
+	// 							let db_IP = Number(DatabaseIP[1]).toString(2).padStart(8, '0') + Number(DatabaseIP[2]).toString(2).padStart(8, '0') + Number(DatabaseIP[3]).toString(2).padStart(8, '0') + Number(DatabaseIP[4]).toString(2).padStart(8, '0')
+	// 							let player_IP = Number(PlayerIP[1]).toString(2).padStart(8, '0') + Number(PlayerIP[2]).toString(2).padStart(8, '0') + Number(PlayerIP[3]).toString(2).padStart(8, '0') + Number(PlayerIP[4]).toString(2).padStart(8, '0')
+	// 							if (DatabaseIP.groups["CIDR"] != undefined) { // if no CIDR just compare
+	// 								player_IP = player_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
+	// 								db_IP = db_IP.slice(0, Number(DatabaseIP.groups["CIDR"])).padEnd(32, '0')
+
+	// 							}
+	// 							if (db_IP == player_IP) {
+	// 								for (let index = 0; index < userID.length; index++) {
+	// 									const element = userID[index];
+	// 									if (UserID_assoc.get(element) != undefined) {
+	// 										alert(`Monitored user ${UserID_assoc.get(element)} (${IPaddress_assoc.get(IPaddress)}) [${IPaddress}] [${element}] was found`) //TOFIX
+	// 										break
+	// 									}
+	// 								}
+	// 							}
+	// 						}
+	// 						else {
+	// 							throw new Error(`Unable to split network address ${element}`);
+	// 						}
+	// 					})
+	// 					if (userID.length > 1) {
+	// 						alert(`Multiple accounts detected from IP ${IPaddress}: ${userID}`)
+	// 					}
+	// 				}
+	// 			}
+	// 			console.debug('ready to display')
+	// 			for (const [index, article] of Object.entries(article_array)) {
+	// 				if (Number(index) == 0) {
+	// 					article.setAttribute('class', 'selected')
+	// 				}
+	// 				window.document.getElementsByTagName('main')[0].appendChild(article)
+	// 			}
+	// 			window.document.getElementById('progress_bar')?.setAttribute('max', (this.files.length).toString())
+	// 			window.document.getElementById('progress_bar')?.setAttribute('value', (progressbar_current).toString())
+	// 		}
+	// 	}, { once: true })
+	// 	filereader.readAsText(file)
+	// }
 }
 
 function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
@@ -693,7 +716,7 @@ if (indev) {
 	(<HTMLDivElement>document.getElementById('warn_bar')).style.display = 'block';
 }
 (<HTMLSpanElement>window.document.getElementById('version')).innerText = `Version: ${version}`;
-document.getElementById('fileInput')?.addEventListener('change', MakeTimeLine);
+document.getElementById('fileInput')?.addEventListener('change', ReadFilesHandler);
 
 Settings.LoadSettings()
 Settings.ApplySettings()
