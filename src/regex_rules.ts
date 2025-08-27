@@ -28,7 +28,8 @@ interface SLRegExp extends RegExpExecArray {
 		'Action': string;
 		'Item': string;
 		'StatusEffect': string;
-		'PlayerName': string
+		'PlayerName': string;
+		'Team':string
 	}
 }
 
@@ -65,6 +66,7 @@ class SLRegExp {
 		Ignore: /(?:Started logging\.)|(?:Game version:.+\.)|(?:Build type:.+\.)|(?:Build timestamp:.+\.)|(?:Headless:.+\.)/,
 		RoundStart: /^Round has been started\.$/,
 		RoundFinish: /^Round finished!.+\.$/,
+		DecontaminationStarted: /^Decontamination started\.$/
 	} as const
 	static Door = {
 		Change: /^(?<UserName>.+?) \((?<UserID>[\w@]+?)\) (?<State>\w+?) (?<DoorName>.+?)(?: using (?<Type>.+))?\.$/

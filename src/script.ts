@@ -1,13 +1,10 @@
 import './style.css';
 import './roles.css';
-import { Icon } from './icons';
 import { SLRegExp } from './regex_rules';
 import { Settings } from './settings';
-import { Role } from './role';
-import { Timeline } from './timeline';
-import { User, UserList } from './user';
+import { UserList } from './user';
 import './super_secret_settings';
-import { SCPRLParser } from './scprlparser';
+import { RoundLogFile } from './roundlogfile';
 
 let version = "0.3.4-ts004-Unstable"
 let indev = true
@@ -47,7 +44,7 @@ let indev = true
 
 */
 
-let parsedfiles: Array<SCPRLParser> = new Array();
+let parsedfiles: Array<RoundLogFile> = new Array();
 let Userlist = new UserList();
 
 const article_array: Array<HTMLElement> = new Array();
@@ -74,54 +71,6 @@ function FileSelector(this: HTMLLIElement) {
 	//TODO: HIDE AND SELECT
 }
 
-function CreateBadges() {
-	throw new Error("Not Implemented");
-
-	const spectator_viewer = window.document.getElementById('spectator_badges')!
-	spectator_viewer.innerHTML = ''
-	//DOM CREATION
-	for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
-		const badge = window.document.createElement('div');
-		const image = window.document.createElement('img');
-		const nickname = window.document.createElement('span');
-		const role = window.document.createElement('span');
-		const nicknameText = UserID_assoc.get(UserID)
-
-		badge.classList.add('spectator_badge')
-		badge.classList.add(<string>Current_Role)
-		badge.setAttribute('userid', UserID);
-		nickname.classList.add('nickname')
-		role.classList.add('role')
-
-		if (nicknameText == undefined) {
-			throw new Error("A");
-
-		}
-		nickname.innerText = nicknameText
-		badge.appendChild(image)
-		badge.appendChild(nickname)
-		badge.appendChild(role)
-		badge.addEventListener('click', SelectPlayer)
-		spectator_viewer.appendChild(badge)
-	}
-
-}
-
-function SelectPlayer(this: HTMLDivElement) {
-	throw new Error("Not Implemented");
-	let userID = this.getAttribute('userid');
-	if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
-	let username = UserID_assoc.get(userID);
-	if (!username) throw new Error(`There is no nickname associated with UserID ${userID}`);
-
-
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = username;
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '2';
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText = '';
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
-}
-
 function ParseFile(filereader: FileReader, index: number) {
 	let lines: Array<string> = new Array()
 	if (typeof filereader.result === 'string') {
@@ -131,16 +80,19 @@ function ParseFile(filereader: FileReader, index: number) {
 		console.warn(typeof filereader.result)
 		throw new Error("Something went horribly wrong (reading data as binary instead of text?)");
 	}
+
 	let log_line: SLRegExp | null;
-	log_line = <SLRegExp>SLRegExp.SplitLogs.exec(lines[0])
+	log_line = <SLRegExp | null>SLRegExp.SplitLogs.exec(lines[0])
 	if (log_line == null) {
 		throw new Error(`An error occured when splitting line, it's possible that user loaded invalid file\nFirst line content: ${lines[0]}`);
 	}
-	parsedfiles[index] = new SCPRLParser()
+	parsedfiles[index] = new RoundLogFile()
+	const RoundFile = parsedfiles[index]
 	lines.forEach(element => {
-		parsedfiles[index].consumeLine(element)
+		RoundFile.consumeLine(element, Userlist)
 	});
-	console.log(parsedfiles)
+	console.debug(parsedfiles)
+	console.debug(Userlist)
 
 
 }
@@ -392,325 +344,375 @@ function ReadFilesHandler(this: HTMLInputElement) {
 	// }
 }
 
-function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
-	// tr.classList.add("notable_death")
-	throw new Error("Not Implemented");
+// function SelectPlayer(this: HTMLDivElement) {
+// 	throw new Error("Not Implemented");
+// 	let userID = this.getAttribute('userid');
+// 	if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
+// 	let username = UserID_assoc.get(userID);
+// 	if (!username) throw new Error(`There is no nickname associated with UserID ${userID}`);
 
-	//HIGH PRIORITY
-	let regmatch: SLRegExp
-	if (SLRegExp.ClassChange.Ignore.test(new_lines[4])) {
-		console.debug(`Ignored ${new_lines[4]}`)
-		return
-	}
 
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
-		let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
-		DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
-		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
-		timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
+// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = username;
+// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '2';
+// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText = '';
+// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
+// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
+// }
+// function CreateBadges() {
+// 	throw new Error("Not Implemented");
 
-		tr.classList.add("notable_death")
-		return
-	}
+// 	const spectator_viewer = window.document.getElementById('spectator_badges')!
+// 	spectator_viewer.innerHTML = ''
+// 	//DOM CREATION
+// 	for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
+// 		const badge = window.document.createElement('div');
+// 		const image = window.document.createElement('img');
+// 		const nickname = window.document.createElement('span');
+// 		const role = window.document.createElement('span');
+// 		const nicknameText = UserID_assoc.get(UserID)
 
-	//LOW PRIORITY
+// 		badge.classList.add('spectator_badge')
+// 		badge.classList.add(<string>Current_Role)
+// 		badge.setAttribute('userid', UserID);
+// 		nickname.classList.add('nickname')
+// 		role.classList.add('role')
 
-	//KTOŚ KOGOŚ ZABIŁ
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
-		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
+// 		if (nicknameText == undefined) {
+// 			throw new Error("A");
 
-		DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
+// 		}
+// 		nickname.innerText = nicknameText
+// 		badge.appendChild(image)
+// 		badge.appendChild(nickname)
+// 		badge.appendChild(role)
+// 		badge.addEventListener('click', SelectPlayer)
+// 		spectator_viewer.appendChild(badge)
+// 	}
 
-		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
-		timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
-		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
-		timeline.AddKiller(current_keyframe, regmatch[3])
+// }
+// function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
+// 	// tr.classList.add("notable_death")
+// 	throw new Error("Not Implemented");
 
-		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
-			tr.classList.add("notable_death")
-		}
-		return;
-	}
+// 	//HIGH PRIORITY
+// 	let regmatch: SLRegExp
+// 	if (SLRegExp.ClassChange.Ignore.test(new_lines[4])) {
+// 		console.debug(`Ignored ${new_lines[4]}`)
+// 		return
+// 	}
 
-	//SAMOBÓJ
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
-		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Warhead.exec(new_lines[4])) {
+// 		let det_keyframe = timeline.FindNewestEventType('warhead_detonated')
+// 		DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) died to Alpha Warhead`)
+// 		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+// 		timeline.AddPlayer(det_keyframe, regmatch[1], 'Spectator')
 
-		DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
+// 		tr.classList.add("notable_death")
+// 		return
+// 	}
 
-		timeline.BackPropagatePlayerRole(regmatch.groups['UserID'], regmatch.groups['UserRole'])
-		timeline.AddPlayer(current_keyframe, regmatch.groups['UserID'], 'Spectator')
-		if (Role.IsSCP(Role.TranslateToInternal(regmatch.groups['UserRole']))) {
-			tr.classList.add("notable_death")
-		}
-		return;
-	}
-	//ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
-		console.debug(regmatch)
-		let captured = false
-		let current_keyframe = timeline.NewKeyFrame(new_lines[1])
+// 	//LOW PRIORITY
 
-		if (SLRegExp.DeathReason.Suicide.test(regmatch.groups["Reason"])) {
-			captured = true
-			timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
-			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) commited suicide [${regmatch[3]}]`)
-		}
-		else if (SLRegExp.DeathReason.Recontained.test(regmatch.groups["Reason"])) {
-			captured = true
-			timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) has been recontained`)
-		}
-		else if (SLRegExp.DeathReason.Decayed.test(regmatch.groups["Reason"])) {
-			captured = true
-			timeline.EditKeyFrameEvent(current_keyframe, 'kill')
-			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) ${regmatch.groups["Reason"]}`)
-		}
-		else {
-			captured = true
-			timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
-			console.error(`unknown kill reason "${regmatch.groups["Reason"]}"`)
-			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) [${regmatch[3]}]`)
-		}
+// 	//KTOŚ KOGOŚ ZABIŁ
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.DirectKill.exec(new_lines[4])) {
+// 		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
-		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
-		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2]))) {
-			tr.classList.add("notable_death")
-		}
-		if (!captured) {
-			throw new Error(`Single kill death was not captured "${regmatch.groups["Reason"]}"`);
-		}
-		return;
-	}
+// 		DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
 
-	//TEAMKILL
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
-		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
+// 		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+// 		timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
+// 		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+// 		timeline.AddKiller(current_keyframe, regmatch[3])
 
-		DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
+// 		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
+// 			tr.classList.add("notable_death")
+// 		}
+// 		return;
+// 	}
 
-		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
-		timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
-		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
-		timeline.AddKiller(current_keyframe, regmatch[3])
-		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
-			tr.classList.add("notable_death")
-		}
-		return;
-	}
+// 	//SAMOBÓJ
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Suicide.exec(new_lines[4])) {
+// 		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'suicide')
 
-	//SPAWN WAVE 1/2
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
-		DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
-		if (!state.respawn_in_progress) { // Oznacz proces respawnu
-			let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
-			timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
-			state.respawn_in_progress = true
-		}
-		else {
-			timeline.AddPlayer(timeline.FindNewestEventType('spawn_wave'), regmatch[1], regmatch[2])
-		}
-		return;
-	}
-	//SPAWN WAVE 2/2
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
-		timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].SetTimestamp(new Date(new_lines[1]))
-		state.respawn_in_progress = false
-		tr.classList.add("notable_death")
-		return;
-	}
-	//FORCE CLASS
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
-		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
-		timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
-		return;
-	}
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
-		if (!state.is_3114_in_game) {
-			const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
-			(<HTMLTableColElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`;
-			tbody3114.style.display = 'inherit';
-			if (Player3114 != null) {
-				state.is_3114_in_game = true;
-			}
-		}
-		console.log(tbody3114)
-		const tr = window.document.createElement('tr')
-		const td_time = window.document.createElement('td')
-		td_time.textContent = new_lines[1];
-		const td_text = window.document.createElement('td')
-		td_text.textContent = new_lines[4];
-		tr.appendChild(td_time)
-		tr.appendChild(td_text);
-		tbody3114.appendChild(tr)
-		return;
-	}
-	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
-		if (!state.is_3114_in_game) {
-			const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
-			(<HTMLTableCellElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
-			tbody3114.style.display = 'inherit'
-			if (Player3114 != null) {
-				state.is_3114_in_game = true
-			}
-		}
-		const tr = window.document.createElement('tr')
-		const td_time = window.document.createElement('td')
-		td_time.textContent = new_lines[1];
-		const td_text = window.document.createElement('td')
-		td_text.textContent = new_lines[4];
-		tr.appendChild(td_time)
-		tr.appendChild(td_text);
-		tbody3114.appendChild(tr);
-		return;
-	}
-	if (Settings.strict_mode) {
-		throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
-	}
-	else {
-		console.warn(`Could not parse Change class event.: ${new_lines[4]}`)
-	}
-}
+// 		DeathLogAttacher(death_log, `${regmatch[1]} (${regmatch[2]}) commited suicide [${regmatch[3]}]`)
 
-function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
-	throw new Error("Not Implemented");
-	tr.classList.add("logger_event")
-	if (new_lines[4].search(SLRegExp.Logger.Ignore) != -1) {
-		console.debug(`Ignored ${new_lines[4]}`)
-		return
-	}
+// 		timeline.BackPropagatePlayerRole(regmatch.groups['UserID'], regmatch.groups['UserRole'])
+// 		timeline.AddPlayer(current_keyframe, regmatch.groups['UserID'], 'Spectator')
+// 		if (Role.IsSCP(Role.TranslateToInternal(regmatch.groups['UserRole']))) {
+// 			tr.classList.add("notable_death")
+// 		}
+// 		return;
+// 	}
+// 	//ZABÓJSTWO BEZ OSOBY ZABIJAJĄCEJ // TODO / TOFIX
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.SingleKill.exec(new_lines[4])) {
+// 		console.debug(regmatch)
+// 		let captured = false
+// 		let current_keyframe = timeline.NewKeyFrame(new_lines[1])
 
-	if (SLRegExp.Logger.RoundStart.test(new_lines[4])) {
-		console.error('Not Implemented')
-		// timeline.keyframe[timeline.FindNewestEventType('round_start')].SetTimestamp(new Date(new_lines[1]))
-		return
-	}
-	if (SLRegExp.Logger.RoundFinish.test(new_lines[4])) {
-		timeline.NewKeyFrame(new_lines[1], 'round_finish')
-		return
-	}
-	if (Settings.strict_mode) {
-		throw new Error(`Could not parse Logger event.: ${new_lines[4]}`)
-	}
-	else {
-		console.warn(`Could not parse Logger event.: ${new_lines[4]}`)
-	}
-}
+// 		if (SLRegExp.DeathReason.Suicide.test(regmatch.groups["Reason"])) {
+// 			captured = true
+// 			timeline.EditKeyFrameEvent(current_keyframe, 'suicide')
+// 			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) commited suicide [${regmatch[3]}]`)
+// 		}
+// 		else if (SLRegExp.DeathReason.Recontained.test(regmatch.groups["Reason"])) {
+// 			captured = true
+// 			timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+// 			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) has been recontained`)
+// 		}
+// 		else if (SLRegExp.DeathReason.Decayed.test(regmatch.groups["Reason"])) {
+// 			captured = true
+// 			timeline.EditKeyFrameEvent(current_keyframe, 'kill')
+// 			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) ${regmatch.groups["Reason"]}`)
+// 		}
+// 		else {
+// 			captured = true
+// 			timeline.EditKeyFrameEvent(current_keyframe, 'unknown')
+// 			console.error(`unknown kill reason "${regmatch.groups["Reason"]}"`)
+// 			DeathLogAttacher(death_log, `${regmatch.groups["UserID"]} (${regmatch.groups["UserRole"]}) [${regmatch[3]}]`)
+// 		}
 
-function AdministativeHandle(new_lines: string[], state: { respawn_in_progress: boolean; broadcast: boolean; admin_chat: boolean; }, admin_chat_log: HTMLSpanElement) {
-	throw new Error("Not Implemented");
-	let regmatch: RegExpExecArray | null
-	if (SLRegExp.Administrative.LockManager.test(new_lines[4])) {
-		console.debug(`Ignored ${new_lines[4]}`)
-		return
-	}
+// 		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+// 		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+// 		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2]))) {
+// 			tr.classList.add("notable_death")
+// 		}
+// 		if (!captured) {
+// 			throw new Error(`Single kill death was not captured "${regmatch.groups["Reason"]}"`);
+// 		}
+// 		return;
+// 	}
 
-	if (regmatch = SLRegExp.Administrative.AdminChat.exec(new_lines[4])) {
-		const admin_name = window.document.createElement('span')
-		const admin_message = window.document.createTextNode(`: ${regmatch[3]}`)
+// 	//TEAMKILL
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.TeamKill.exec(new_lines[4])) {
+// 		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'kill')
 
-		admin_name.className = 'admin_chat'
-		admin_name.innerText = regmatch[1]
-		admin_chat_log.appendChild(admin_name)
-		admin_chat_log.appendChild(admin_message)
-		admin_chat_log.appendChild(document.createElement('br'))
-		state.admin_chat = true
-		return
-	}
-	if (regmatch = SLRegExp.Administrative.Broadcast.exec(new_lines[4])) {
-		state.broadcast = true
-		return
-	}
-	if (Settings.strict_mode) {
-		throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
-	}
-	else {
-		console.warn(`Could not parse Administrative event.: ${new_lines[4]}`)
-	}
+// 		DeathLogAttacher(death_log, `${regmatch[3]} (${regmatch[4]}) killed ${regmatch[1]} (${regmatch[2]}) [${regmatch[5]}]`)
 
-}
+// 		timeline.BackPropagatePlayerRole(regmatch[1], regmatch[2])
+// 		timeline.BackPropagatePlayerRole(regmatch[3], regmatch[4])
+// 		timeline.AddPlayer(current_keyframe, regmatch[1], 'Spectator')
+// 		timeline.AddKiller(current_keyframe, regmatch[3])
+// 		if (Role.IsSCP(Role.TranslateToInternal(regmatch[2])) || (Role.IsCivilian(Role.TranslateToInternal(regmatch[2])) && !Role.IsSCP(Role.TranslateToInternal(regmatch[4])))) {
+// 			tr.classList.add("notable_death")
+// 		}
+// 		return;
+// 	}
 
-function DeathLogAttacher(death_log: HTMLSpanElement, death_log_text: string) {
-	throw new Error("Not Implemented");
-	death_log.appendChild(window.document.createTextNode(death_log_text))
-	death_log.appendChild(window.document.createElement('br'))
-	return
-}
+// 	//SPAWN WAVE 1/2
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnAs.exec(new_lines[4])) {
+// 		DeathLogAttacher(death_log, `${regmatch[1]} spawned as ${regmatch[2]}`)
+// 		if (!state.respawn_in_progress) { // Oznacz proces respawnu
+// 			let current_keyframe = timeline.NewKeyFrame(null, 'spawn_wave')
+// 			timeline.AddPlayer(current_keyframe, regmatch[1], regmatch[2])
+// 			state.respawn_in_progress = true
+// 		}
+// 		else {
+// 			timeline.AddPlayer(timeline.FindNewestEventType('spawn_wave'), regmatch[1], regmatch[2])
+// 		}
+// 		return;
+// 	}
+// 	//SPAWN WAVE 2/2
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.RespawnManager.exec(new_lines[4])) {
+// 		timeline.keyframe[timeline.FindNewestEventType('spawn_wave')].SetTimestamp(new Date(new_lines[1]))
+// 		state.respawn_in_progress = false
+// 		tr.classList.add("notable_death")
+// 		return;
+// 	}
+// 	//FORCE CLASS
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.ForceClass.exec(new_lines[4])) {
+// 		let current_keyframe = timeline.NewKeyFrame(new_lines[1], 'force_class')
+// 		timeline.AddPlayer(current_keyframe, regmatch[2], regmatch[3])
+// 		return;
+// 	}
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseSet.exec(new_lines[4])) {
+// 		if (!state.is_3114_in_game) {
+// 			const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
+// 			(<HTMLTableColElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`;
+// 			tbody3114.style.display = 'inherit';
+// 			if (Player3114 != null) {
+// 				state.is_3114_in_game = true;
+// 			}
+// 		}
+// 		console.log(tbody3114)
+// 		const tr = window.document.createElement('tr')
+// 		const td_time = window.document.createElement('td')
+// 		td_time.textContent = new_lines[1];
+// 		const td_text = window.document.createElement('td')
+// 		td_text.textContent = new_lines[4];
+// 		tr.appendChild(td_time)
+// 		tr.appendChild(td_text);
+// 		tbody3114.appendChild(tr)
+// 		return;
+// 	}
+// 	if (regmatch = <SLRegExp>SLRegExp.ClassChange.Skeleton.DisguiseDrop.exec(new_lines[4])) {
+// 		if (!state.is_3114_in_game) {
+// 			const Player3114 = <string>timeline.FindPlayerWithRole("Scp3114");
+// 			(<HTMLTableCellElement>tbody3114.firstChild).textContent = `Szkieletem jest ${UserID_assoc.get(Player3114)} (${Player3114})`
+// 			tbody3114.style.display = 'inherit'
+// 			if (Player3114 != null) {
+// 				state.is_3114_in_game = true
+// 			}
+// 		}
+// 		const tr = window.document.createElement('tr')
+// 		const td_time = window.document.createElement('td')
+// 		td_time.textContent = new_lines[1];
+// 		const td_text = window.document.createElement('td')
+// 		td_text.textContent = new_lines[4];
+// 		tr.appendChild(td_time)
+// 		tr.appendChild(td_text);
+// 		tbody3114.appendChild(tr);
+// 		return;
+// 	}
+// 	if (Settings.strict_mode) {
+// 		throw new Error(`Could not parse Change class event.: ${new_lines[4]}`)
+// 	}
+// 	else {
+// 		console.warn(`Could not parse Change class event.: ${new_lines[4]}`)
+// 	}
+// }
 
-function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
-	throw new Error("Not Implemented");
-	tr.classList.add("warhead_event")
-	if (SLRegExp.Warhead.CountdownStart.test(new_lines[4])) {
-		timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
-		return
-	}
-	if (SLRegExp.Warhead.CountdownPaused.test(new_lines[4])) {
-		timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_paused')
-		return
-	}
-	if (SLRegExp.Warhead.Detonated.test(new_lines[4])) {
-		timeline.NewKeyFrame(new_lines[1], 'warhead_detonated')
-		return
-	}
-	if (Settings.strict_mode) {
-		throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
-	}
-	else {
-		console.warn(`Could not parse Warhead event.: ${new_lines[4]}`)
-	}
-}
+// function LoggerHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
+// 	throw new Error("Not Implemented");
+// 	tr.classList.add("logger_event")
+// 	if (new_lines[4].search(SLRegExp.Logger.Ignore) != -1) {
+// 		console.debug(`Ignored ${new_lines[4]}`)
+// 		return
+// 	}
 
-function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
-	throw new Error("Not Implemented");
+// 	if (SLRegExp.Logger.RoundStart.test(new_lines[4])) {
+// 		console.error('Not Implemented')
+// 		// timeline.keyframe[timeline.FindNewestEventType('round_start')].SetTimestamp(new Date(new_lines[1]))
+// 		return
+// 	}
+// 	if (SLRegExp.Logger.RoundFinish.test(new_lines[4])) {
+// 		timeline.NewKeyFrame(new_lines[1], 'round_finish')
+// 		return
+// 	}
+// 	if (Settings.strict_mode) {
+// 		throw new Error(`Could not parse Logger event.: ${new_lines[4]}`)
+// 	}
+// 	else {
+// 		console.warn(`Could not parse Logger event.: ${new_lines[4]}`)
+// 	}
+// }
 
-	let regmatch: SLRegExp | null
+// function AdministativeHandle(new_lines: string[], state: { respawn_in_progress: boolean; broadcast: boolean; admin_chat: boolean; }, admin_chat_log: HTMLSpanElement) {
+// 	throw new Error("Not Implemented");
+// 	let regmatch: RegExpExecArray | null
+// 	if (SLRegExp.Administrative.LockManager.test(new_lines[4])) {
+// 		console.debug(`Ignored ${new_lines[4]}`)
+// 		return
+// 	}
 
-	if (regmatch = <SLRegExp>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
-		console.debug(`Ignored ${new_lines[4]}`)
-		return
-	}
+// 	if (regmatch = SLRegExp.Administrative.AdminChat.exec(new_lines[4])) {
+// 		const admin_name = window.document.createElement('span')
+// 		const admin_message = window.document.createTextNode(`: ${regmatch[3]}`)
 
-	if (regmatch = <SLRegExp>SLRegExp.Networking.Nickname.exec(new_lines[4])) {
-		UserID_assoc.set(regmatch[1], regmatch[2])
-		return
-	}
+// 		admin_name.className = 'admin_chat'
+// 		admin_name.innerText = regmatch[1]
+// 		admin_chat_log.appendChild(admin_name)
+// 		admin_chat_log.appendChild(admin_message)
+// 		admin_chat_log.appendChild(document.createElement('br'))
+// 		state.admin_chat = true
+// 		return
+// 	}
+// 	if (regmatch = SLRegExp.Administrative.Broadcast.exec(new_lines[4])) {
+// 		state.broadcast = true
+// 		return
+// 	}
+// 	if (Settings.strict_mode) {
+// 		throw new Error(`Could not parse Administrative event.: ${new_lines[4]}`)
+// 	}
+// 	else {
+// 		console.warn(`Could not parse Administrative event.: ${new_lines[4]}`)
+// 	}
 
-	if (regmatch = <SLRegExp>SLRegExp.Networking.Preauth.exec(new_lines[4])) {
-		//TODO: ALT DETECTION
-		if (IPaddress_assoc.get(regmatch.groups["IPaddress"]) === undefined) {
-			IPaddress_assoc.set(regmatch.groups["IPaddress"], new Array())
-		}
-		for (let index = 0; index < (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"])).length; index++) {
-			const element = (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"]))[index];
-			if (element == regmatch.groups["UserID"]) {
-				return // If user already exists, do not append
-			}
-		}
+// }
 
-		IPaddress_assoc.get(regmatch.groups["IPaddress"])?.push(regmatch.groups["UserID"])
-		return
-	}
-	if (regmatch = <SLRegExp>SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
-		if (regmatch.groups["Role"] == "Destroyed") {
-			return;
-		}
-		timeline.BackPropagatePlayerRole(regmatch.groups["UserID"], regmatch.groups["Role"])
-		return;
-	}
-	if (Settings.strict_mode) {
-		throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
-	}
-	else {
-		console.warn(`Could not parse Networking event.: ${new_lines[4]}`)
-	}
-}
+// function DeathLogAttacher(death_log: HTMLSpanElement, death_log_text: string) {
+// 	throw new Error("Not Implemented");
+// 	death_log.appendChild(window.document.createTextNode(death_log_text))
+// 	death_log.appendChild(window.document.createElement('br'))
+// 	return
+// }
 
-window.document.getElementById('test')?.addEventListener('click', SelectPlayer)
-window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
+// function WarheadHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline) {
+// 	throw new Error("Not Implemented");
+// 	tr.classList.add("warhead_event")
+// 	if (SLRegExp.Warhead.CountdownStart.test(new_lines[4])) {
+// 		timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_start')
+// 		return
+// 	}
+// 	if (SLRegExp.Warhead.CountdownPaused.test(new_lines[4])) {
+// 		timeline.NewKeyFrame(new_lines[1], 'warhead_countdown_paused')
+// 		return
+// 	}
+// 	if (SLRegExp.Warhead.Detonated.test(new_lines[4])) {
+// 		timeline.NewKeyFrame(new_lines[1], 'warhead_detonated')
+// 		return
+// 	}
+// 	if (Settings.strict_mode) {
+// 		throw new Error(`Could not parse Warhead event.: ${new_lines[4]}`)
+// 	}
+// 	else {
+// 		console.warn(`Could not parse Warhead event.: ${new_lines[4]}`)
+// 	}
+// }
+
+// function NetworkingHandle(new_lines: string[], timeline: Timeline): void {
+// 	throw new Error("Not Implemented");
+
+// 	let regmatch: SLRegExp | null
+
+// 	if (regmatch = <SLRegExp>SLRegExp.Networking.Ignore.exec(new_lines[4])) {
+// 		console.debug(`Ignored ${new_lines[4]}`)
+// 		return
+// 	}
+
+// 	if (regmatch = <SLRegExp>SLRegExp.Networking.Nickname.exec(new_lines[4])) {
+// 		UserID_assoc.set(regmatch[1], regmatch[2])
+// 		return
+// 	}
+
+// 	if (regmatch = <SLRegExp>SLRegExp.Networking.Preauth.exec(new_lines[4])) {
+// 		//TODO: ALT DETECTION
+// 		if (IPaddress_assoc.get(regmatch.groups["IPaddress"]) === undefined) {
+// 			IPaddress_assoc.set(regmatch.groups["IPaddress"], new Array())
+// 		}
+// 		for (let index = 0; index < (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"])).length; index++) {
+// 			const element = (<string[]>IPaddress_assoc.get(regmatch.groups["IPaddress"]))[index];
+// 			if (element == regmatch.groups["UserID"]) {
+// 				return // If user already exists, do not append
+// 			}
+// 		}
+
+// 		IPaddress_assoc.get(regmatch.groups["IPaddress"])?.push(regmatch.groups["UserID"])
+// 		return
+// 	}
+// 	if (regmatch = <SLRegExp>SLRegExp.Networking.Disconnect.exec(new_lines[4])) {
+// 		if (regmatch.groups["Role"] == "Destroyed") {
+// 			return;
+// 		}
+// 		timeline.BackPropagatePlayerRole(regmatch.groups["UserID"], regmatch.groups["Role"])
+// 		return;
+// 	}
+// 	if (Settings.strict_mode) {
+// 		throw new Error(`Could not parse Networking event.: ${new_lines[4]}`)
+// 	}
+// 	else {
+// 		console.warn(`Could not parse Networking event.: ${new_lines[4]}`)
+// 	}
+// }
+
+// window.document.getElementById('test')?.addEventListener('click', SelectPlayer)
+// window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
+
 window.document.getElementById('settings')?.children.namedItem('updatesettings')?.addEventListener('click', Settings.RefreshSettings);
-window.addEventListener('error', () => {
+window.addEventListener('error', (a) => {
+	console.log(a);
 	(<HTMLDivElement>document.getElementById('error_bar')).style.display = 'block';
+	(<HTMLDivElement>document.getElementById('error_bar')).innerText += `\n${a.message}`;
+
 })
 if (indev) {
 	(<HTMLDivElement>document.getElementById('warn_bar')).style.display = 'block';

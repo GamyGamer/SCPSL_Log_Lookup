@@ -78,8 +78,17 @@ class Timeline {
 			throw new Error('Not implemented exception')
 		}
 		else {
+			if (this.HasEventType(EventType.Specific.RoundStart)) {
+				if (this.FindNewestPlayer(userID) < this.FindNewestEventType(EventType.Specific.RoundStart)) {
+					this.AddPlayer(this.FindNewestEventType(EventType.Specific.RoundStart), userID, Role)
+					return
+				}
+			}
 			this.AddPlayer(this.FindNewestPlayer(userID), userID, Role)
+			return
 		}
+		throw new Error("Oops");
+
 	}
 	AddPlayer(index: ProxyIndex, userID: User['ID'], role: InternalRole) {
 		this.OutOfBoundsCheck(index)
@@ -91,17 +100,17 @@ class Timeline {
 		}
 
 		if (keyframeData.getPlayerMap().get(userID) != role) {
-			switch (role) {
-				case 'Scp0492':
-					console.log(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
-					break
-				default:
-					console.warn(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
-					break;
+			if (keyframeData.getPlayerMap().get(userID) != undefined) {
+				switch (role) {
+					case 'Scp0492':
+						console.log(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
+						break
+					default:
+						console.warn(`Player ${userID} at ${index} was ${keyframeData.getPlayerMap().get(userID)} and now is ${role}`)
+						break;
+				}
 			}
 			keyframeData.getPlayerMap().set(userID, role)
-		}
-		else {
 		}
 	}
 	FindNewestEventType(event: EventType.Specific): ProxyIndex {
@@ -112,6 +121,9 @@ class Timeline {
 		}
 		throw new Error(`Event ${event} does not exist`)
 	}
+	LastEvent(): Keyframe {
+		return this.proxyArray[this.proxyArray.length - 1]
+	}
 	get proxyArray() {
 		return this.getTruncatedKeyframeArray()
 	}
@@ -120,6 +132,13 @@ class Timeline {
 			throw new Error(`keyframe array has size of ${this.proxyArray.length}, accessing out of bounds`)
 		}
 	}
-
+	HasEventType(event: EventType.Specific): boolean {
+		for (let index = this.proxyArray.length - 1; index >= 0; index--) {
+			if (this.proxyArray[index].GetSpecificEventType() == event) {
+				return true
+			}
+		}
+		return false
+	}
 }
 export { Timeline }

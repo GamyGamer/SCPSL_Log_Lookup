@@ -39,11 +39,14 @@ namespace EventType {
 		Door = 'door',
 		Ignored = "ignored",
 		RoundStart = 'round_start',
+		RoundFinish = 'round_finish',
 		Suicide = 'suicide',
 		Respawn = 'respawn',
 		Connection = 'connection',
 		Throwable = 'throwable',
-		Warhead = 'warhead'
+		Warhead = 'warhead',
+		ForceClass = 'force class',
+		DecontaminationStarted = 'decontamination_started'
 	}
 }
 

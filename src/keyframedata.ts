@@ -2,8 +2,8 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent;
-export type withPlayerMap = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | WarheadEvent
+type KeyframeData = RoundStartEvent | RoundFinishEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent | ForceClassEvent | DecontaminationStartedEvent;
+export type withPlayerMap = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | WarheadEvent | ForceClassEvent
 
 
 abstract class BasicEvent {
@@ -43,7 +43,24 @@ export class RoundStartEvent extends BasicEvent implements PlayerRef {
 	}
 }
 
-type DeathType = 'died' | 'suicide' | 'killed' | 'teamkilled';
+export class RoundFinishEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.RoundFinish;
+	constructor() {
+		super()
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return false
+	}
+}
+
+export class DecontaminationStartedEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.DecontaminationStarted;
+	hasPlayerMap(): this is withPlayerMap {
+		return false
+	}
+}
+
+export type DeathType = 'died' | 'suicide' | 'killed' | 'teamkilled';
 
 export class DeathEvent extends BasicEvent implements PlayerRef {
 	readonly event_type = EventType.Specific.Death;
@@ -100,7 +117,7 @@ export class DeathEvent extends BasicEvent implements PlayerRef {
 
 export class RespawnEvent extends BasicEvent implements PlayerRef {
 	readonly event_type = EventType.Specific.Respawn;
-	readonly player: Map<string, InternalRole>;
+	readonly player: Map<User['ID'], InternalRole>;
 	private team?: 'FoundationForces' | 'ChaosInsurgency'
 
 	constructor(UserID: User['ID'], Role: InternalRole, Team?: 'FoundationForces' | 'ChaosInsurgency') {
@@ -173,7 +190,7 @@ export class ConnectionEvent extends BasicEvent implements PlayerRef {
 	}
 }
 
-type DoorState = 'destroyed' | 'opened' | 'closed';
+export type DoorState = 'destroyed' | 'opened' | 'closed';
 
 export class DoorEvent extends BasicEvent implements PlayerRef {
 	readonly event_type = EventType.Specific.Door;
@@ -318,6 +335,30 @@ export class WarheadEvent extends BasicEvent implements PlayerRef {
 			return true
 		}
 		return false
+	}
+}
+
+export class ForceClassEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.ForceClass;
+	readonly player: Map<User['ID'], InternalRole>;
+	readonly issuer: User['ID']
+	constructor(UserID: User['ID'], Role: InternalRole, Issuer: User['ID']) {
+		super()
+		this.player = new Map()
+		this.player.set(UserID, Role)
+		this.issuer = Issuer
+	}
+	AddPlayer(UserID: User['ID'], Role: InternalRole) {
+		if (typeof this.player.get(UserID) != 'undefined') {
+			throw new Error("This player already exists");
+		}
+		this.player.set(UserID, Role)
+	}
+	hasPlayerMap(): this is withPlayerMap {
+		return true
+	}
+	getPlayerMap(): Map<User["ID"], InternalRole> {
+		return this.player
 	}
 }
 
