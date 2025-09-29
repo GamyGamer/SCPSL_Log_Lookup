@@ -87,8 +87,6 @@ class Timeline {
 			this.AddPlayer(this.FindNewestPlayer(userID), userID, Role)
 			return
 		}
-		throw new Error("Oops");
-
 	}
 	AddPlayer(index: ProxyIndex, userID: User['ID'], role: InternalRole) {
 		this.OutOfBoundsCheck(index)

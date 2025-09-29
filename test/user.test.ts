@@ -83,7 +83,7 @@ describe('User', () => {
 	});
 	it('Should return user groups', () => {
 		expect(listOfUsers.GetUser('gamygamer@localhost').GetGroups()).toContainEqual('Administrator')
-		expect(() => { listOfUsers.GetUser('hubertmoszka@northwood').GetGroups() }).toThrow('User hubertmoszka@northwood does not have a group assigned')
+		expect(listOfUsers.GetUser('hubertmoszka@northwood').GetGroups()).toStrictEqual(new Set())
 		listOfUsers.GetUser('hubertmoszka@northwood').AddGroup('Moderator')
 		expect(listOfUsers.GetUser('hubertmoszka@northwood').GetGroups()).toContainEqual('Moderator')
 	});

@@ -78,6 +78,9 @@ class RoundLogFile {
 			case EventType.Modules.GameLogic:
 				this.GameLogicHandle(parsed_line)
 				break
+			case EventType.Modules.Permissions:
+				this.PermissionHandle(UserListRef, parsed_line)
+				break
 			default:
 				this.currentTimeline.addPadding()
 				console.warn(`Module ${parsed_line.groups.Module} not implemented: ${parsed_line.groups.Message}`)
@@ -87,6 +90,21 @@ class RoundLogFile {
 
 
 		// console.log(parsed_line.groups.Message)
+	}
+	private PermissionHandle(UserListRef: UserList, ParsedLine: SLRegExp) {
+		let parsed_message = <SLRegExp | null>SLRegExp.Permissions.AssignedGroup.exec(ParsedLine.groups.Message)
+		if (parsed_message) {
+			if (UserListRef.UserExist(parsed_message.groups.UserID)) {
+				UserListRef.GetUser(parsed_message.groups.UserID).AddGroup(parsed_message.groups.PermissionGroup)
+			}
+			else {
+				const user = new User(parsed_message.groups.UserID,parsed_message.groups.UserName,undefined,parsed_message.groups.PermissionGroup)
+				UserListRef.AddUser(user)
+			}
+			this.currentTimeline.addPadding()
+			return
+		}
+		throw new Error(`Unable to parse Permission event: ${ParsedLine.groups.Message}`);
 	}
 	private GameLogicHandle(ParsedLine: SLRegExp) {
 		let parsed_message = <SLRegExp | null>SLRegExp.Logger.RoundStart.exec(ParsedLine.groups.Message)
@@ -115,7 +133,7 @@ class RoundLogFile {
 			this.currentTimeline.addPadding()
 			return
 		}
-		throw new Error(`Unable to parse Game logic Event: ${ParsedLine.groups.Message}`);
+		console.error(`Unable to parse Game logic Event: ${ParsedLine.groups.Message}`);
 
 	}
 	private ClassChangeHandle(ParsedLine: SLRegExp) {

@@ -93,8 +93,6 @@ function ParseFile(filereader: FileReader, index: number) {
 	});
 	console.debug(parsedfiles)
 	console.debug(Userlist)
-
-
 }
 
 function ReadFilesHandler(this: HTMLInputElement) {
@@ -344,52 +342,101 @@ function ReadFilesHandler(this: HTMLInputElement) {
 	// }
 }
 
-// function SelectPlayer(this: HTMLDivElement) {
-// 	throw new Error("Not Implemented");
-// 	let userID = this.getAttribute('userid');
-// 	if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
-// 	let username = UserID_assoc.get(userID);
-// 	if (!username) throw new Error(`There is no nickname associated with UserID ${userID}`);
+function SelectPlayer(this: HTMLDivElement) {
+
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = '';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText = '';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = '';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('server_role')).innerText = '';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = ''
 
 
-// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = username;
-// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '2';
-// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText = '';
-// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
-// 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
-// }
-// function CreateBadges() {
-// 	throw new Error("Not Implemented");
+	// throw new Error("Not Implemented");
+	let userID = this.getAttribute('userid');
+	if (!userID) throw new Error("Selected Badge doesn't have userID assigned to it");
+	let user = Userlist.GetUser(userID);
+	if (!user) throw new Error(`There is no nickname associated with UserID ${userID}`);
+	const usernames = user.GetNicknames();
+	for (const element of usernames) {
+		if ((<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText != '') {
+			(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText += ', '
+		}
+		(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText += element
+	}
+	const IPs = user.GetIPs();
+	for (const element of IPs) {
+		if ((<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText != '') {
+			(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText += ', '
+		}
+		(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('ipaddress')).innerText += element
+	}
+	const Groups = user.GetGroups();
 
-// 	const spectator_viewer = window.document.getElementById('spectator_badges')!
-// 	spectator_viewer.innerHTML = ''
-// 	//DOM CREATION
-// 	for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
-// 		const badge = window.document.createElement('div');
-// 		const image = window.document.createElement('img');
-// 		const nickname = window.document.createElement('span');
-// 		const role = window.document.createElement('span');
-// 		const nicknameText = UserID_assoc.get(UserID)
+	for (const element of Groups) {
+		if ((<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('server_role')).innerText != '') {
+			(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('server_role')).innerText += ', '
+		}
+		(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('server_role')).innerText += element
+	}
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '[UNKNOWN]';
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
+}
+function CreateBadges() {
+	const spectator_viewer = window.document.getElementById('spectator_badges')!
+	spectator_viewer.innerHTML = ''
+	//DOM CREATION
 
-// 		badge.classList.add('spectator_badge')
-// 		badge.classList.add(<string>Current_Role)
-// 		badge.setAttribute('userid', UserID);
-// 		nickname.classList.add('nickname')
-// 		role.classList.add('role')
+	Userlist.UserList.forEach(value => {
 
-// 		if (nicknameText == undefined) {
-// 			throw new Error("A");
+		const badge = window.document.createElement('div');
+		const image = window.document.createElement('img');
+		const nickname = window.document.createElement('span');
+		const role = window.document.createElement('span');
+		const nicknameText = <string>(value.GetNicknames().values().next().value)
 
-// 		}
-// 		nickname.innerText = nicknameText
-// 		badge.appendChild(image)
-// 		badge.appendChild(nickname)
-// 		badge.appendChild(role)
-// 		badge.addEventListener('click', SelectPlayer)
-// 		spectator_viewer.appendChild(badge)
-// 	}
+		badge.classList.add('spectator_badge')
+		// badge.classList.add(<string>Current_Role)
+		badge.setAttribute('userid', value.ID);
+		nickname.classList.add('nickname')
+		role.classList.add('role')
 
-// }
+		nickname.innerText = nicknameText
+		badge.appendChild(image)
+		badge.appendChild(nickname)
+		badge.appendChild(role)
+		badge.addEventListener('click', SelectPlayer)
+		spectator_viewer.appendChild(badge)
+
+	})
+
+	return
+	for (const [UserID, Current_Role] of Object.entries(timeline[0].keyframe[0].player)) {
+		const badge = window.document.createElement('div');
+		const image = window.document.createElement('img');
+		const nickname = window.document.createElement('span');
+		const role = window.document.createElement('span');
+		const nicknameText = UserID_assoc.get(UserID)
+
+		badge.classList.add('spectator_badge')
+		badge.classList.add(<string>Current_Role)
+		badge.setAttribute('userid', UserID);
+		nickname.classList.add('nickname')
+		role.classList.add('role')
+
+		if (nicknameText == undefined) {
+			throw new Error("A");
+
+		}
+		nickname.innerText = nicknameText
+		badge.appendChild(image)
+		badge.appendChild(nickname)
+		badge.appendChild(role)
+		badge.addEventListener('click', SelectPlayer)
+		spectator_viewer.appendChild(badge)
+	}
+}
 // function ClassChangeHandle(new_lines: string[], tr: HTMLTableRowElement, timeline: Timeline, state: { respawn_in_progress: boolean; is_broadcasting?: boolean; is_3114_in_game?: boolean; }, death_log: HTMLSpanElement, tbody3114: HTMLTableSectionElement) {
 // 	// tr.classList.add("notable_death")
 // 	throw new Error("Not Implemented");
@@ -705,7 +752,7 @@ function ReadFilesHandler(this: HTMLInputElement) {
 // }
 
 // window.document.getElementById('test')?.addEventListener('click', SelectPlayer)
-// window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
+window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
 
 window.document.getElementById('settings')?.children.namedItem('updatesettings')?.addEventListener('click', Settings.RefreshSettings);
 window.addEventListener('error', (a) => {

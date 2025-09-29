@@ -89,8 +89,8 @@ class User {
 			return this.group;
 		}
 		else {
-			throw new Error(`User ${this.ID} does not have a group assigned`);
-
+			return new Set()
+			// throw new Error(`User ${this.ID} does not have a group assigned`);
 		}
 	}
 }
