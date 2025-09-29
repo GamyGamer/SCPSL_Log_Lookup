@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ConnectionEvent, DeathEvent, DoorEvent, RespawnEvent, RoundStartEvent, ThrowableEvent, WarheadEvent } from '../src/keyframedata';
+import { ConnectionEvent, DeathEvent, DecontaminationStartedEvent, DoorEvent, ForceClassEvent, RespawnEvent, RoundFinishEvent, RoundStartEvent, ThrowableEvent, WarheadEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -10,6 +10,14 @@ describe('Create RoundStartEvent', () => {
 		expect(Event.hasPlayerMap()).toBeTruthy()
 		Event.addPlayer('gamy@local', 'ClassD')
 		expect(Event.getPlayerMap().get('gamy@local')).toStrictEqual('ClassD')
+	})
+})
+
+describe('Create RoundFinishEvent', () => {
+	let Event = new RoundFinishEvent()
+	it('Should contain corrent event_type', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.RoundFinish)
+		expect(Event.hasPlayerMap()).toBeFalsy()
 	})
 })
 
@@ -239,5 +247,27 @@ describe('Create WarheadEvent', () => {
 	})
 	it('Should return if it has PlayerMap', () => {
 		expect(WarheadSet.hasPlayerMap()).toBeFalsy()
+	})
+})
+
+describe('Create DecontaminationStartedEvent', () => {
+	let Event = new DecontaminationStartedEvent()
+	it('Has correct data', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.DecontaminationStarted)
+		expect(Event.hasPlayerMap()).toBeFalsy()
+	})
+})
+
+describe('Create ForceClassEvent', () => {
+	let Event = new ForceClassEvent('player1@steam', 'ClassD', 'player2@steam')
+	it('Should contain correct event_type', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.ForceClass)
+	})
+	it('Should return correct data', () => {
+		expect(Event.hasPlayerMap()).toBeTruthy()
+		expect(Event.getPlayerMap()).toStrictEqual(new Map().set('player1@steam', 'ClassD'))
+		expect(Event.AddPlayer('Player3@steam', 'Scientist'))
+		expect(Event.getPlayerMap()).toStrictEqual(new Map().set('player1@steam', 'ClassD').set('Player3@steam', 'Scientist'))
+		expect(() => { Event.AddPlayer('player1@steam', 'Scientist') }).toThrow('This player already exists')
 	})
 })
