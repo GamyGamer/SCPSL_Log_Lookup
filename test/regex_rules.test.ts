@@ -5,7 +5,7 @@ import { Role } from '../src/role';
 const TestData = {
 	UserID: ['306161751077158933@discord', '76561198163699391@steam', 'hubertmoszka@northwood'],
 	UserName: ['GamyGamer', 'Diagram [ERD]', 'Super gra (SL)', 'Gracz ze znakiem | bo tak '],
-	Message: ['Hejka', 'Test wiadomosci', ' <-- [(On wie)]', 'Uwaga ludzie (Wszyscy), Robimy | EVENT |!!! [Najlepsza osoba wygrywa (WSZYSTKO!)]'],
+	Message: ['Hejka', 'Test wiadomosci', ' <-- [(On wie)]', 'Uwaga ludzie (Wszyscy), Robimy | EVENT |!!! [Najlepsza osoba wygrywa (WSZYSTKO!)]', ''],
 	IP: ['192.168.0.1', '10.100.100.2:25565']
 }
 
@@ -164,11 +164,17 @@ describe('Administrative', () => {
 	let capture: SLRegExp | null
 	describe('Check Adminchat', () => {
 		it('Should capture SERVER CONSOLE', () => {
-			capture = <SLRegExp>SLRegExp.Administrative.AdminChat.exec('[SERVER CONSOLE] Hejka');
+			capture = <SLRegExp>SLRegExp.Administrative.AdminChat.exec('[SERVER CONSOLE] Hejka'); // With Message
 			expect(capture).not.toBeNull()
 			expect(capture.groups['UserID']).toBeUndefined()
 			expect(capture.groups['UserName']).toStrictEqual('SERVER CONSOLE');
 			expect(capture.groups['Message']).toStrictEqual('Hejka')
+
+			capture = <SLRegExp>SLRegExp.Administrative.AdminChat.exec('[SERVER CONSOLE] '); //Without Message
+			expect(capture).not.toBeNull()
+			expect(capture.groups['UserID']).toBeUndefined()
+			expect(capture.groups['UserName']).toStrictEqual('SERVER CONSOLE');
+			expect(capture.groups['Message']).toStrictEqual('')
 		});
 		describe.each(TestData.UserID)(`Should capture UserID: %s`, (userid) => {
 			describe.each(TestData.UserName)(`UserName: %s,`, (username) => {

@@ -38,12 +38,12 @@ class SLRegExp {
 	static SplitIP = /^(\d*?)\.(\d*?)\.(\d*?)\.(\d+)(?:\/(?<CIDR>\d+))?$/
 
 	static Administrative = {
-		AdminChat: /^\[(?<UserName>.+)(?:(?<=\[SERVER CONSOLE)\]|(?: \((?<UserID>.+?)\))\]) (?<Message>.+)$/,
+		AdminChat: /^\[(?<UserName>.+)(?:(?<=\[SERVER CONSOLE)\]|(?: \((?<UserID>.+?)\))\]) (?<Message>.*)$/,
 		LockManager: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) (?<Type>round|lobby) lock\.$/,
 		Broadcast: /^(?<UserName>.+) \((?<UserID>.+)\) broadcast text "(?<Message>.+)"\. Duration: (?<TimeValue>.+?) (?<Scale>.+?)\. Broadcast Flag: (?<Flag>.+)\./
 	} as const
 	static Permissions = {
-		AssignedGroup: /^(?<UserName>.+) \((?<UserID>.+)\) has been assigned to group (?<PermissionGroup>.+)\.$/
+		AssignedGroup: /^(?<UserName>.+) \((?<UserID>.+)\) has been assigned to group (?<PermissionGroup>.*)\.$/
 	} as const
 
 	static ClassChange = {
