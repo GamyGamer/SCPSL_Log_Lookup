@@ -105,7 +105,7 @@ class Timeline {
 			console.warn(`Player ${userID} does not exist, fallbacking to newest event with PlayerMap`)
 			let withPlayerMap = this.getKeyframeArrayWithPlayerMap();
 			if (withPlayerMap.length == 0) {
-				throw new Error("Unable to fallback because there are no events with PlayerMap");	
+				throw new Error("Unable to fallback because there are no events with PlayerMap");
 			}
 			(<withPlayerMap>withPlayerMap[withPlayerMap.length - 1].GetData()).getPlayerMap().set(userID, Role)
 		}
@@ -170,6 +170,34 @@ class Timeline {
 			}
 		}
 		return false
+	}
+	getFilteredKeyframes(FilterBy: 'ServerLogType' | 'Module' | 'Specific', Scope: EventType.Modules | EventType.ServerLogType | EventType.Specific): Array<Keyframe> {
+		let proxyArray = this.proxyArray // cache
+		let prepared = new Array()
+		for (let index = 0; index < proxyArray.length; index++) {
+			const element = proxyArray[index];
+			switch (FilterBy) {
+				case 'ServerLogType':
+					if (element.GetServerLogType() == Scope) {
+						prepared.push(element)
+					}
+					break;
+				case "Module":
+					if (element.GetModule() == Scope) {
+						prepared.push(element)
+					}
+					break
+				case "Specific":
+					if (element.GetSpecificEventType() == Scope) {
+						prepared.push(element)
+					}
+					break
+				default:
+					throw new Error(`Invalid Filter by option: ${FilterBy}`);
+			}
+
+		}
+		return prepared
 	}
 }
 export { Timeline }

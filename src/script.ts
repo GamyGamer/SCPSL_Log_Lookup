@@ -93,6 +93,7 @@ function ParseFile(filereader: FileReader, index: number) {
 	});
 	console.debug(parsedfiles)
 	console.debug(Userlist)
+	console.debug(RoundFile)
 }
 
 function ReadFilesHandler(this: HTMLInputElement) {
@@ -383,6 +384,7 @@ function SelectPlayer(this: HTMLDivElement) {
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
 }
+
 function CreateBadges() {
 	const spectator_viewer = window.document.getElementById('spectator_badges')!
 	spectator_viewer.innerHTML = ''
@@ -756,7 +758,7 @@ window.document.getElementById('settings')?.children.namedItem('renderbadges')?.
 
 window.document.getElementById('settings')?.children.namedItem('updatesettings')?.addEventListener('click', Settings.RefreshSettings);
 window.addEventListener('error', (a) => {
-	console.log(a);
+	console.error(a);
 	(<HTMLDivElement>document.getElementById('error_bar')).style.display = 'block';
 	(<HTMLDivElement>document.getElementById('error_bar')).innerText += `\n${a.message}`;
 

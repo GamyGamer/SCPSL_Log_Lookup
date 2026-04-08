@@ -18,7 +18,7 @@ it('Should append Keyframe to timeline', () => {
     let LogSpy = jest.spyOn(console, 'log').mockImplementation(() => Promise.resolve())
 
     let keyframedata = new ConnectionEvent('gamy@local', 'Connected')
-    expect( () =>{timelime.BackPropagatePlayerRole('graczowy@remote', 'Filmmaker')}).toThrow('Unable to fallback because there are no events with PlayerMap')
+    expect(() => { timelime.BackPropagatePlayerRole('graczowy@remote', 'Filmmaker') }).toThrow('Unable to fallback because there are no events with PlayerMap')
     let keyframe = new Keyframe('2025-08-07 17:33:18.028 +02:00', EventType.ServerLogType.ConnectionUpdate, EventType.Modules.Networking, keyframedata)
     timelime.addKeyframe(keyframe)
     timelime.addKeyframe(new Keyframe('2025-08-07 17:33:18.028 +02:00', EventType.ServerLogType.ConnectionUpdate, EventType.Modules.Networking, new ConnectionEvent('evil@network', 'Connected')))
@@ -92,4 +92,25 @@ it('Should append Keyframe to timeline', () => {
     timelime.BackPropagatePlayerRole('graczowy@remote', 'Filmmaker')
     expect(WarnSpy).toHaveBeenLastCalledWith('Player graczowy@remote does not exist, fallbacking to newest event with PlayerMap')
     expect((<withPlayerMap>timelime.getKeyframeArrayWithPlayerMap()[timelime.getKeyframeArrayWithPlayerMap().length - 1].GetData()).getPlayerMap()).toStrictEqual(new Map().set('graczowy@remote', 'Filmmaker').set('gamy@local', 'ClassD'))
+    {
+        let filtered_data = timelime.getFilteredKeyframes('ServerLogType', EventType.ServerLogType.GameEvent)
+        expect(filtered_data.length).toStrictEqual(5)
+        expect(filtered_data[0].GetData().getEventType()).toStrictEqual(EventType.Specific.DecontaminationStarted)
+        expect(filtered_data[1].GetData().getEventType()).toStrictEqual(EventType.Specific.Respawn)
+        expect(filtered_data[2].GetData().getEventType()).toStrictEqual(EventType.Specific.Warhead)
+        expect(filtered_data[3].GetData().getEventType()).toStrictEqual(EventType.Specific.Door)
+        expect(filtered_data[4].GetData().getEventType()).toStrictEqual(EventType.Specific.RoundStart)
+
+        filtered_data = timelime.getFilteredKeyframes('Module', EventType.Modules.GameLogic)
+        expect(filtered_data.length).toStrictEqual(2)
+        expect(filtered_data[0].GetData().getEventType()).toStrictEqual(EventType.Specific.DecontaminationStarted)
+        expect(filtered_data[1].GetData().getEventType()).toStrictEqual(EventType.Specific.RoundStart)
+
+        filtered_data = timelime.getFilteredKeyframes('Specific', EventType.Specific.Respawn)
+        expect(filtered_data.length).toStrictEqual(1)
+        expect(filtered_data[0].GetData().getEventType()).toStrictEqual(EventType.Specific.Respawn)
+
+        //@ts-expect-error
+        expect(() => {timelime.getFilteredKeyframes('Invalid :)',EventType.Modules.Administrative)}).toThrow('Invalid Filter by option: Invalid :)')
+    }
 })
