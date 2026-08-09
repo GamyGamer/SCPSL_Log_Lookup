@@ -12,9 +12,10 @@ import { SLRegExp } from "./regex_rules";
 import { Timeline } from "./timeline";
 import { EventType } from "./gameevent";
 import { User, UserList } from "./user";
-import { ConnectionEvent, DeathEvent, DeathType, DoorEvent, DoorState, ForceClassEvent, RespawnEvent, RoundFinishEvent, RoundStartEvent } from "./keyframedata";
+import { AdminChatEvent, BroadcastEvent, ConnectionEvent, DeathEvent, DeathType, DoorEvent, DoorState, ForceClassEvent, RespawnEvent, RoundFinishEvent, RoundStartEvent, withMessage } from "./keyframedata";
 import { Keyframe } from "./keyframe";
 import { Role } from "./role";
+import { Settings } from "./settings";
 
 class RoundLogFile {
 	timelineArray: Array<Timeline>
@@ -35,15 +36,24 @@ class RoundLogFile {
 			throw new Error("Tried reading file when it was already declared to be terminated");
 		}
 		if (log_line == "") {
-			if (!this.state.multilineMessage) {
+			if (!this.state.multilineMessage) { // Terminate file when there is no last message
 				this.state.fileTerminated = true
 				return
 			}
-			throw new Error("Multiline message is not implemented");
+			let LastEvent = this.currentTimeline.LastEvent().GetData()
+			if (LastEvent.getEventType() == (EventType.Specific.AdminChat || EventType.Specific.Broadcast)) {
+				(<withMessage>LastEvent).message += `\n${log_line}`  // Append message when it is multiline message
+				return
+			}
+			throw new Error("MultilineMessage state is set to true when last event doesn't handle MultilineMessage");
 		}
 
 		if (parsed_line == null || parsed_line.groups.Timestamp == undefined || parsed_line.groups.Type == undefined || parsed_line.groups.Module == undefined || parsed_line.groups.Message == undefined) {
 			throw new Error(`An error occured when parsing line: ${log_line}`);
+		}
+		if (this.state.multilineMessage) {
+			this.state.multilineMessage = false
+			console.debug(`End of MultilineMessage`)
 		}
 
 		if (this.state.connectedPlayers == 0) {
@@ -81,6 +91,9 @@ class RoundLogFile {
 			case EventType.Modules.Permissions:
 				this.PermissionHandle(UserListRef, parsed_line)
 				break
+			case EventType.Modules.Administrative:
+				this.AdministativeHandle(parsed_line)
+				break
 			default:
 				this.currentTimeline.addPadding()
 				console.warn(`Module ${parsed_line.groups.Module} not implemented: ${parsed_line.groups.Message}`)
@@ -98,7 +111,7 @@ class RoundLogFile {
 				UserListRef.GetUser(parsed_message.groups.UserID).AddGroup(parsed_message.groups.PermissionGroup)
 			}
 			else {
-				const user = new User(parsed_message.groups.UserID,parsed_message.groups.UserName,undefined,parsed_message.groups.PermissionGroup)
+				const user = new User(parsed_message.groups.UserID, parsed_message.groups.UserName, undefined, parsed_message.groups.PermissionGroup)
 				UserListRef.AddUser(user)
 			}
 			this.currentTimeline.addPadding()
@@ -187,7 +200,9 @@ class RoundLogFile {
 			this.currentTimeline.addKeyframe(keyframe)
 			return
 		}
-		throw new Error(`Unable to parse Change Class Event: ${ParsedLine.groups.Message}`);
+		this.currentTimeline.addPadding()
+		console.warn(`Unable to parse Change Class Event: ${ParsedLine.groups.Message}`)
+		// throw new Error(`Unable to parse Change Class Event: ${ParsedLine.groups.Message}`);
 	}
 	private DoorHandle(ParsedLine: SLRegExp) {
 		let parsed_message = <SLRegExp | null>SLRegExp.Door.Change.exec(ParsedLine.groups.Message)
@@ -247,6 +262,42 @@ class RoundLogFile {
 		}
 		// throw new Error(`Unable to parse Networking event: ${ParsedLine.groups.Message}`);
 	}
+	private AdministativeHandle(ParsedLine: SLRegExp) {
+
+		// throw new Error("Not Implemented");
+		let parsed_message: SLRegExp | null
+
+		if (SLRegExp.Administrative.LockManager.test(ParsedLine.groups.Message)) {
+			console.debug(`Ignored ${ParsedLine.groups.Message}`)
+			this.currentTimeline.addPadding()
+			return
+		}
+
+		if (parsed_message = <SLRegExp>SLRegExp.Administrative.AdminChat.exec(ParsedLine.groups.Message)) {
+			const issuer = parsed_message.groups.UserID ? parsed_message.groups.UserID : parsed_message.groups.UserName
+			const keyframedata = new AdminChatEvent(issuer, parsed_message.groups.Message)
+			const keyframe = new Keyframe(ParsedLine.groups.Timestamp, EventType.ServerLogType.AdminChat, EventType.Modules.Administrative, keyframedata)
+			this.currentTimeline.addKeyframe(keyframe)
+			this.state.multilineMessage = true
+			return
+		}
+		if (parsed_message = <SLRegExp>SLRegExp.Administrative.Broadcast.exec(ParsedLine.groups.Message)) {
+			const issuer = parsed_message.groups.UserID
+			const keyframedata = new BroadcastEvent(issuer, parsed_message.groups.Message)
+			const keyframe = new Keyframe(ParsedLine.groups.Timestamp, EventType.ServerLogType.RemoteAdminActivity_GameChanging, EventType.Modules.Administrative, keyframedata)
+			this.currentTimeline.addKeyframe(keyframe)
+			this.state.multilineMessage = true
+			return
+		}
+		if (Settings.strict_mode) {
+			throw new Error(`Could not parse Administrative event.: ${ParsedLine.groups.Message}`)
+		}
+		else {
+			console.warn(`Could not parse Administrative event.: ${ParsedLine.groups.Message}`)
+			this.currentTimeline.addPadding()
+		}
+	}
+
 	private get currentTimeline(): Timeline {
 		return this.timelineArray[this.state.roundNum]
 	}

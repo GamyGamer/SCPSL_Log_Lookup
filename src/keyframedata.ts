@@ -2,8 +2,9 @@ import { EventType } from "./gameevent";
 import { InternalRole } from "./role";
 import { User } from "./user";
 
-type KeyframeData = RoundStartEvent | RoundFinishEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent | ForceClassEvent | DecontaminationStartedEvent;
+type KeyframeData = RoundStartEvent | RoundFinishEvent | DeathEvent | RespawnEvent | ConnectionEvent | DoorEvent | ThrowableEvent | WarheadEvent | ForceClassEvent | DecontaminationStartedEvent | AdminChatEvent | BroadcastEvent;
 export type withPlayerMap = RoundStartEvent | DeathEvent | RespawnEvent | ConnectionEvent | WarheadEvent | ForceClassEvent
+export type withMessage = AdminChatEvent | BroadcastEvent
 
 
 abstract class BasicEvent {
@@ -18,7 +19,7 @@ interface PlayerRef {
 	getPlayerMap?(): Map<User['ID'], InternalRole>
 	//User who is responsible for class change, Shows current role
 	killer?: Map<User['ID'], InternalRole>
-	//User who invoked a class change via Remote admin, UserID only
+	//User who is responsible for specific message, UserID only
 	issuer?: User['ID']
 	//User who has been affected by issuer, UserID only
 	affected?: User['ID']
@@ -359,6 +360,36 @@ export class ForceClassEvent extends BasicEvent implements PlayerRef {
 	}
 	getPlayerMap(): Map<User["ID"], InternalRole> {
 		return this.player
+	}
+}
+
+export class AdminChatEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.AdminChat
+	readonly issuer: User['ID'];
+	message: string
+	constructor(Issuer: User['ID'], Message: string) {
+		super()
+		this.issuer = Issuer
+		this.message = Message
+	}
+
+	hasPlayerMap(): this is withPlayerMap {
+		return false
+	}
+}
+
+export class BroadcastEvent extends BasicEvent implements PlayerRef {
+	readonly event_type = EventType.Specific.Broadcast
+	readonly issuer: User['ID'];
+	message: string
+	constructor(Issuer: User['ID'], Message: string) {
+		super()
+		this.issuer = Issuer
+		this.message = Message
+	}
+
+	hasPlayerMap(): this is withPlayerMap {
+		return false
 	}
 }
 

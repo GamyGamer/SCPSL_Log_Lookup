@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ConnectionEvent, DeathEvent, DecontaminationStartedEvent, DoorEvent, ForceClassEvent, RespawnEvent, RoundFinishEvent, RoundStartEvent, ThrowableEvent, WarheadEvent } from '../src/keyframedata';
+import { AdminChatEvent, BroadcastEvent, ConnectionEvent, DeathEvent, DecontaminationStartedEvent, DoorEvent, ForceClassEvent, RespawnEvent, RoundFinishEvent, RoundStartEvent, ThrowableEvent, WarheadEvent } from '../src/keyframedata';
 import { EventType } from '../src/gameevent';
 
 
@@ -269,5 +269,29 @@ describe('Create ForceClassEvent', () => {
 		expect(Event.AddPlayer('Player3@steam', 'Scientist'))
 		expect(Event.getPlayerMap()).toStrictEqual(new Map().set('player1@steam', 'ClassD').set('Player3@steam', 'Scientist'))
 		expect(() => { Event.AddPlayer('player1@steam', 'Scientist') }).toThrow('This player already exists')
+	})
+})
+
+describe('Create AdminChatEvent', () => {
+	let Event = new AdminChatEvent('player1@steam', 'Ej on cheatuje')
+	it('Should contain correct event_type', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.AdminChat)
+	})
+	it('Should return correct data', () => {
+		expect(Event.hasPlayerMap()).toBeFalsy()
+		expect(Event.issuer).toStrictEqual('player1@steam')
+		expect(Event.message).toStrictEqual('Ej on cheatuje')
+	})
+})
+
+describe('Create BroadcastEvent', () => {
+	let Event = new BroadcastEvent('player1@steam', 'Siema')
+	it('Should contain correct event_type', () => {
+		expect(Event.getEventType()).toStrictEqual(EventType.Specific.Broadcast)
+	})
+	it('Should return correct data', () => {
+		expect(Event.hasPlayerMap()).toBeFalsy()
+		expect(Event.issuer).toStrictEqual('player1@steam')
+		expect(Event.message).toStrictEqual('Siema')
 	})
 })

@@ -15,7 +15,6 @@ interface SLRegExp extends RegExpExecArray {
 		'UserRole': string;
 		'Role': string;
 		'TimeValue': string;
-		'Scale': string;
 		'Flag': string;
 		'IssuerID': string;
 		'IssuerRole': string;
@@ -40,7 +39,7 @@ class SLRegExp {
 	static Administrative = {
 		AdminChat: /^\[(?<UserName>.+)(?:(?<=\[SERVER CONSOLE)\]|(?: \((?<UserID>.+?)\))\]) (?<Message>.*)$/,
 		LockManager: /^(?<UserName>.+) \((?<UserID>.+)\) (?<State>enabled|disabled) (?<Type>round|lobby) lock\.$/,
-		Broadcast: /^(?<UserName>.+) \((?<UserID>.+)\) broadcast text "(?<Message>.+)"\. Duration: (?<TimeValue>.+?) (?<Scale>.+?)\. Broadcast Flag: (?<Flag>.+)\./
+		Broadcast: /^(?<UserName>.+) \((?<UserID>.+)\) broadcast text "(?<Message>.+)"\. Duration: (?<TimeValue>.+?) seconds\. Broadcast Flag: (?<Flag>.+)\.$/
 	} as const
 	static Permissions = {
 		AssignedGroup: /^(?<UserName>.+) \((?<UserID>.+)\) has been assigned to group (?<PermissionGroup>.*)\.$/

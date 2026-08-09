@@ -5,7 +5,7 @@
  * TODO: Also it has to be unique
  */
 class UserList {
-	private UserList: Array<User>
+	UserList: Array<User>
 	constructor() {
 		this.UserList = new Array();
 	}

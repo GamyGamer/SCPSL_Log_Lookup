@@ -45,8 +45,10 @@ namespace EventType {
 		Connection = 'connection',
 		Throwable = 'throwable',
 		Warhead = 'warhead',
-		ForceClass = 'force class',
-		DecontaminationStarted = 'decontamination_started'
+		ForceClass = 'force_class',
+		DecontaminationStarted = 'decontamination_started',
+		AdminChat = 'admin_chat',
+		Broadcast = 'broadcast'
 	}
 }
 

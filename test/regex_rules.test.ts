@@ -222,7 +222,7 @@ describe('Administrative', () => {
 			expect(capture).toBeNull()
 		})
 	})
-	describe('Broadcast', () => {
+	describe('Global Broadcast', () => {
 		describe.each(TestData.Message)('Message: %s', (message) => {
 			describe.each(TestData.UserID)('UserID: %s', (userid) => {
 				it.each(TestData.UserName)('Should capture broadcast correctly', (username) => {
@@ -232,7 +232,6 @@ describe('Administrative', () => {
 					expect(capture.groups.UserID).toStrictEqual(userid)
 					expect(capture.groups.Message.trimEnd()).toStrictEqual(message)
 					expect(capture.groups.TimeValue).toStrictEqual('10')
-					expect(capture.groups.Scale).toStrictEqual('seconds')
 					expect(capture.groups.Flag).toStrictEqual('Normal')
 				})
 			})
