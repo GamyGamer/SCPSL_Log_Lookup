@@ -25,6 +25,7 @@ it('Should append Keyframe to timeline', () => {
     timeline.addPadding()
     timeline.addPadding()
     timeline.addKeyframe(new Keyframe('2025-08-07 17:33:18.028 +02:00', EventType.ServerLogType.KillLog, EventType.Modules.ClassChange, new DeathEvent('gamy@local', 'Spectator', 'killed', 'evil@network', 'Scp049')))
+    timeline.AddPlayer(timeline.FindNewestEventType(EventType.Specific.Death), 'gamy@local', 'Spectator')
 
     expect(timeline.proxyArray.length).toStrictEqual(3)
 

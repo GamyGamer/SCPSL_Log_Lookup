@@ -75,6 +75,7 @@ class Timeline {
 		this.OutOfBoundsCheck(index)
 		return this.proxyArray[index].GetData().getEventType()
 	}
+	//@ts-expect-error
 	FindNewestPlayer(UserID: User['ID']): ProxyIndex {
 		if (!this.PlayerExist(UserID)) {
 			throw new Error(`Player ${UserID} Does not exists`)
@@ -87,7 +88,6 @@ class Timeline {
 				}
 			}
 		}
-		throw new Error(`Unable to find ${UserID}. This line in theory should not fire so if you get this error something is very wrong, please report.`);
 	}
 	PlayerExist(UserID: User['ID']): boolean {
 		for (let index = 0; index < this.proxyArray.length; index++) {
