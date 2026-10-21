@@ -30,6 +30,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": false,
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": true,
+    "types": [
+      "node"
+    ]
   },
 }
