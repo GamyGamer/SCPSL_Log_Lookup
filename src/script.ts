@@ -5,6 +5,8 @@ import { Settings } from './settings';
 import { UserList } from './user';
 import './super_secret_settings';
 import { RoundLogFile } from './roundlogfile';
+import { EventType } from './gameevent';
+import { withPlayerMap } from './keyframedata';
 
 let version = "0.3.4-ts004-Unstable"
 let indev = true
@@ -343,6 +345,47 @@ function ReadFilesHandler(this: HTMLInputElement) {
 	// }
 }
 
+let timelinePositionViewerCurrent = 0
+let timelinePositionViewerCount = 0
+
+
+function AdvanceTimeline() {
+	if (timelinePositionViewerCurrent >= timelinePositionViewerCount) {
+		return
+	}
+	const round = parsedfiles[0].timelineArray[0].getKeyframeArrayWithPlayerMap(); //TODO, Select for specific round
+	const round_data = <withPlayerMap>round[timelinePositionViewerCurrent++].GetData()
+
+	for (const spectator_badge of window.document.getElementById('spectator_badges')!.children) {
+		const userID = <string>spectator_badge.getAttribute('userid')
+		const new_role = round_data.getPlayerMap().get(userID)
+		if (new_role) {
+			spectator_badge.setAttribute('Role', new_role)
+		}
+	}
+	(<HTMLSpanElement>window.document.getElementById('userinfo')!.children.namedItem('timeline_position')).innerText = `[${timelinePositionViewerCurrent}/${timelinePositionViewerCount}]`;
+	(<HTMLInputElement>window.document.getElementById('userinfo')?.children.namedItem('timeline_range')).value = timelinePositionViewerCurrent.toString();
+
+}
+function ReverseTimeline() {
+	const temp = --timelinePositionViewerCurrent
+	CreateBadges()
+	timelinePositionViewerCurrent = 0
+	while (temp > timelinePositionViewerCurrent) {
+		AdvanceTimeline()
+	}
+}
+function TimelineFastForward(this: HTMLInputElement) {
+	const rangeValue = parseInt(this.value)
+	if (rangeValue < timelinePositionViewerCurrent) {
+		CreateBadges()
+		timelinePositionViewerCurrent = 0
+	}
+	while (rangeValue > timelinePositionViewerCurrent) {
+		AdvanceTimeline()
+	}
+}
+
 function SelectPlayer(this: HTMLDivElement) {
 
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('nickname')).innerText = '';
@@ -351,6 +394,7 @@ function SelectPlayer(this: HTMLDivElement) {
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = '';
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('server_role')).innerText = '';
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = ''
+
 
 
 	// throw new Error("Not Implemented");
@@ -382,16 +426,23 @@ function SelectPlayer(this: HTMLDivElement) {
 	}
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('playerid')).innerText = '[UNKNOWN]';
 	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('userid')).innerText = userID;
-	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.classList[1]!
+	(<HTMLSpanElement>window.document.getElementById('userinfo')?.children.namedItem('class')).innerText = this.getAttribute('Role')!
 }
 
 function CreateBadges() {
-	const spectator_viewer = window.document.getElementById('spectator_badges')!
+	const spectator_viewer = window.document.getElementById('spectator_badges')!;
 	spectator_viewer.innerHTML = ''
 	//DOM CREATION
 
-	Userlist.UserList.forEach(value => {
+	let r_start = parsedfiles[0].timelineArray[0].getKeyframeArrayWithPlayerMap();
+	timelinePositionViewerCurrent = 0
+	timelinePositionViewerCount = r_start.length;
+	(<HTMLSpanElement>window.document.getElementById('userinfo')!.children.namedItem('timeline_position'))!.innerText = `[${timelinePositionViewerCurrent}/${timelinePositionViewerCount}]`;
+	(<HTMLInputElement>window.document.getElementById('userinfo')?.children.namedItem('timeline_range')).max = timelinePositionViewerCount.toString();
+	(<HTMLInputElement>window.document.getElementById('userinfo')?.children.namedItem('timeline_range')).min = timelinePositionViewerCurrent.toString();
 
+	console.log(r_start)
+	Userlist.UserList.forEach(value => {
 		const badge = window.document.createElement('div');
 		const image = window.document.createElement('img');
 		const nickname = window.document.createElement('span');
@@ -399,7 +450,18 @@ function CreateBadges() {
 		const nicknameText = <string>(value.GetNicknames().values().next().value)
 
 		badge.classList.add('spectator_badge')
-		// badge.classList.add(<string>Current_Role)
+
+		for (let index = 0; index < r_start.length; index++) {
+			const element = <withPlayerMap>r_start[index].GetData();
+			let Role = element.getPlayerMap().get(value.ID)
+			if (Role == undefined || Role == 'None' || Role == 'Spectator') {
+				continue
+			}
+			// badge.setAttribute('Role', Role)
+			break
+		}
+
+
 		badge.setAttribute('userid', value.ID);
 		nickname.classList.add('nickname')
 		role.classList.add('role')
@@ -755,6 +817,10 @@ function CreateBadges() {
 
 // window.document.getElementById('test')?.addEventListener('click', SelectPlayer)
 window.document.getElementById('settings')?.children.namedItem('renderbadges')?.addEventListener('click', CreateBadges);
+window.document.getElementById('userinfo')?.children.namedItem('timeline_reverse')?.addEventListener('click', ReverseTimeline);
+window.document.getElementById('userinfo')?.children.namedItem('timeline_advance')?.addEventListener('click', AdvanceTimeline);
+(<HTMLInputElement>window.document.getElementById('userinfo')?.children.namedItem('timeline_range'))?.addEventListener('change', TimelineFastForward)
+
 
 window.document.getElementById('settings')?.children.namedItem('updatesettings')?.addEventListener('click', Settings.RefreshSettings);
 window.addEventListener('error', (a) => {

@@ -72,7 +72,7 @@ div.spectator_badge.selected:hover {
 
 
 
-div.spectator_badge.ClassD {
+div.spectator_badge[Role=ClassD] {
 	--main-color: #FF8E00;
 
 	img {
@@ -84,7 +84,7 @@ div.spectator_badge.ClassD {
 	}
 }
 
-div.spectator_badge.Scientist {
+div.spectator_badge[Role=Scientist] {
 	--main-color: #FFFF7C;
 
 	img {
@@ -96,7 +96,7 @@ div.spectator_badge.Scientist {
 	}
 }
 
-div.spectator_badge.Scp173 {
+div.spectator_badge[Role=Scp173] {
 	--main-color: #EC2222;
 
 	img {
@@ -108,7 +108,7 @@ div.spectator_badge.Scp173 {
 	}
 }
 
-div.spectator_badge.Scp106 {
+div.spectator_badge[Role=Scp106] {
 	--main-color: #EC2222;
 
 	img {
@@ -120,7 +120,7 @@ div.spectator_badge.Scp106 {
 	}
 }
 
-div.spectator_badge.Scp049 {
+div.spectator_badge[Role=Scp049] {
 	--main-color: #EC2222;
 
 	img {
@@ -132,7 +132,7 @@ div.spectator_badge.Scp049 {
 	}
 }
 
-div.spectator_badge.Scp0492 {
+div.spectator_badge[Role=Scp0492] {
 	--main-color: #EC2222;
 
 	img {
@@ -144,7 +144,7 @@ div.spectator_badge.Scp0492 {
 	}
 }
 
-div.spectator_badge.Scp096 {
+div.spectator_badge[Role=Scp096] {
 	--main-color: #EC2222;
 
 	img {
@@ -156,7 +156,7 @@ div.spectator_badge.Scp096 {
 	}
 }
 
-div.spectator_badge.Scp3114 {
+div.spectator_badge[Role=Scp3114] {
 	--main-color: #EC2222;
 
 	img {
@@ -168,7 +168,7 @@ div.spectator_badge.Scp3114 {
 	}
 }
 
-div.spectator_badge.Scp079 {
+div.spectator_badge[Role=Scp079] {
 	--main-color: #EC2222;
 
 	img {
@@ -180,7 +180,7 @@ div.spectator_badge.Scp079 {
 	}
 }
 
-div.spectator_badge.Scp939 {
+div.spectator_badge[Role=Scp939] {
 	--main-color: #EC2222;
 
 	img {
@@ -192,7 +192,7 @@ div.spectator_badge.Scp939 {
 	}
 }
 
-div.spectator_badge.NtfSpecialist {
+div.spectator_badge[Role=NtfSpecialist] {
 	--main-color: #00D9FF;
 
 	img {
@@ -204,7 +204,7 @@ div.spectator_badge.NtfSpecialist {
 	}
 }
 
-div.spectator_badge.NtfSergeant {
+div.spectator_badge[Role=NtfSergeant] {
 	--main-color: #0096FF;
 
 	img {
@@ -216,7 +216,7 @@ div.spectator_badge.NtfSergeant {
 	}
 }
 
-div.spectator_badge.NtfCaptain {
+div.spectator_badge[Role=NtfCaptain] {
 	--main-color: #003DCA;
 
 	img {
@@ -228,7 +228,7 @@ div.spectator_badge.NtfCaptain {
 	}
 }
 
-div.spectator_badge.NtfPrivate {
+div.spectator_badge[Role=NtfPrivate] {
 	--main-color: #70C3FF;
 
 	img {
@@ -240,7 +240,7 @@ div.spectator_badge.NtfPrivate {
 	}
 }
 
-div.spectator_badge.FacilityGuard {
+div.spectator_badge[Role=FacilityGuard] {
 	--main-color: #5B6370;
 
 	img {
@@ -252,7 +252,7 @@ div.spectator_badge.FacilityGuard {
 	}
 }
 
-div.spectator_badge.ChaosConscript {
+div.spectator_badge[Role=ChaosConscript] {
 	--main-color: #559101;
 
 	img {
@@ -264,7 +264,7 @@ div.spectator_badge.ChaosConscript {
 	}
 }
 
-div.spectator_badge.ChaosRifleman {
+div.spectator_badge[Role=ChaosRifleman] {
 	--main-color: #008F1C;
 
 	img {
@@ -276,7 +276,7 @@ div.spectator_badge.ChaosRifleman {
 	}
 }
 
-div.spectator_badge.ChaosMarauder {
+div.spectator_badge[Role=ChaosMarauder] {
 	--main-color: #066328;
 
 	img {
@@ -288,7 +288,7 @@ div.spectator_badge.ChaosMarauder {
 	}
 }
 
-div.spectator_badge.ChaosRepressor {
+div.spectator_badge[Role=ChaosRepressor] {
 	--main-color: #15853D;
 
 	img {
@@ -300,14 +300,14 @@ div.spectator_badge.ChaosRepressor {
 	}
 }
 
-div.spectator_badge.Spectator {
+div.spectator_badge[Role=Spectator] {
 
 	span.role::before {
 		content: "Spectator";
 	}
 }
 
-div.spectator_badge.Overwatch {
+div.spectator_badge[Role=Overwatch] {
 	--main-color: #00FFFF;
 
 	img {
@@ -319,7 +319,7 @@ div.spectator_badge.Overwatch {
 	}
 }
 
-div.spectator_badge.Filmmaker {
+div.spectator_badge[Role=Filmmaker] {
 	--main-color: #3D3D3D;
 
 	img {
@@ -331,7 +331,7 @@ div.spectator_badge.Filmmaker {
 	}
 }
 
-div.spectator_badge.Tutorial {
+div.spectator_badge[Role=Tutorial] {
 	--main-color: #F700FD;
 
 	img {
@@ -343,7 +343,7 @@ div.spectator_badge.Tutorial {
 	}
 }
 
-div.spectator_badge.Scp1507 {
+div.spectator_badge[Role=Scp1507] {
 	--main-color: #FF59CA;
 
 	img {
@@ -355,7 +355,7 @@ div.spectator_badge.Scp1507 {
 	}
 }
 
-div.spectator_badge.Scp1507Alpha {
+div.spectator_badge[Role=Scp1507Alpha] {
 	--main-color: #E94CB7;
 
 	img {
@@ -367,7 +367,7 @@ div.spectator_badge.Scp1507Alpha {
 	}
 }
 
-div.spectator_badge.Scp1507049 {
+div.spectator_badge[Role=Scp1507049] {
 	--main-color: #EC2222;
 
 	img {
@@ -379,8 +379,20 @@ div.spectator_badge.Scp1507049 {
 	}
 }
 
+div.spectator_badge[Role=None] {
+	--main-color: grey;
 
-/* div.spectator_badge. {
+	img {
+		content: url(icons/na.png);
+	}
+
+	span.role::before {
+		content: "Not playing";
+	}
+}
+
+
+/* div.spectator_badge[Role=] {
 	--main-color: ;
 
 	img {
